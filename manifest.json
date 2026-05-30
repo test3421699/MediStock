@@ -1,6 +1,6 @@
 {
-  "name": "MEDISTOCK",
-  "short_name": "MEDISTOCK",
+  "name": "MediStock",
+  "short_name": "MediStock",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#1976D2",
