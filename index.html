@@ -1078,7 +1078,9 @@ auth.onAuthStateChanged((user) => {
         syncToFirebase();
       }
       loadHome();
-      showPage('page-home');
+      if (auth.currentUser) {
+   showPage('page-home');
+      }
       showToast('Welcome, ' + currentUser.name.split(' ')[0] + '! 👋', 'success');
     }).catch(err => {
       showToast('Error loading data: ' + err.message, 'error');
