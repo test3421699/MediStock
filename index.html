@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -175,8 +173,18 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 .report-table th { background: var(--hdr); color: #fff; padding: 9px 8px; text-align: left; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
 .report-table th:first-child { border-radius: 6px 0 0 0; }
 .report-table th:last-child { border-radius: 0 6px 0 0; }
-.report-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 13px; }
-.report-table tr:nth-child(even) td { background: #F8FAFF; }
+/* Update this in your CSS styles block */
+.report-table td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 13px;
+  
+  /* ADD THESE LINES BELOW */
+  white-space: pre-line; /* Preserves line breaks entered into the textarea */
+  word-break: break-word; /* Prevents long single words from breaking your table structure */
+}
+  .report-table tr:nth-child(even) td { background: #F8FAFF; }
 .report-table tr.low-stock td { color: var(--danger); background: #FFF8F8; }
 
 /* ── DETAIL PAGE ─────────────────────────────────────────────────── */
@@ -538,7 +546,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
   </div>
   <div class="main-content form-page">
     <div class="form-section-title">Medicine Details</div>
-    <div class="form-group"><label>Medicine Name *</label><input type="text" id="med-name" placeholder="e.g. Paracetamol 500mg" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+    <div class="form-group"><label>Medicine Name *</label><textarea type="text" id="med-name" placeholder="e.g. Paracetamol 500mg" autocomplete="off" autocorrect="off" spellcheck="false"></textarea></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div class="form-group"><label>Stock Quantity *</label><input type="number" id="med-qty" placeholder="e.g. 100" min="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
       <div class="form-group"><label>Price (₹)</label><input type="number" id="med-price" placeholder="50.00" step="0.01" min="0"></div>
@@ -1599,22 +1607,44 @@ function downloadPDF() {
     doc.text('Patient: ' + (p ? p.name : '—'),15,32);
     doc.text('Date: ' + todayDMY(),15,38);
 
-    let startY = 45; let rowHeight = 10;
+    let startY = 45; 
     const col1 = 15; const col2 = 30; const col3 = 130; const col4 = 155;
 
-    doc.setLineWidth(0.3); doc.rect(col1,startY,180,rowHeight);
-    doc.line(col2,startY,col2,startY+rowHeight); doc.line(col3,startY,col3,startY+rowHeight); doc.line(col4,startY,col4,startY+rowHeight);
+    // Helper function to draw table header
+    function drawStockHeader(currentY) {
+      doc.setLineWidth(0.3); doc.rect(col1,currentY,180,10);
+      doc.line(col2,currentY,col2,currentY+10); doc.line(col3,currentY,col3,currentY+10); doc.line(col4,currentY,col4,currentY+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      doc.text('SL',20,currentY+6); doc.text('MEDICINE NAME',35,currentY+6); doc.text('QTY',138,currentY+6); doc.text('PRICE',162,currentY+6);
+      return currentY + 10;
+    }
 
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0);
-    doc.text('SL',20,startY+6); doc.text('MEDICINE NAME',35,startY+6); doc.text('QTY',138,startY+6); doc.text('PRICE',162,startY+6);
+    let y = drawStockHeader(startY);
 
-    let y = startY + rowHeight;
     meds.forEach((m,i) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      
+      // Split text into multi-line array and dynamically calculate row height
+      let medNameStr = m.name + (m.qty <= settings.threshold ? '  [LOW]' : '');
+      let splitName = doc.splitTextToSize(medNameStr, 90);
+      let rowHeight = Math.max(10, splitName.length * 5 + 4);
+
+      // Add new page if content overflows
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = drawStockHeader(20);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      }
+
       doc.setLineWidth(0.2); doc.rect(col1,y,180,rowHeight);
       doc.line(col2,y,col2,y+rowHeight); doc.line(col3,y,col3,y+rowHeight); doc.line(col4,y,col4,y+rowHeight);
 
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
-      doc.text(String(i+1),20,y+6); doc.text(m.name.substring(0,38),35,y+6); doc.text(String(m.qty),138,y+6); doc.text('Rs.' + m.price.toFixed(2),162,y+6);
+      // Draw Top-aligned texts
+      doc.text(String(i+1),20,y+6); 
+      doc.text(splitName,35,y+6);  // passing array renders multi-line
+      doc.text(String(m.qty),138,y+6); 
+      doc.text('Rs.' + m.price.toFixed(2),162,y+6);
+      
       y += rowHeight;
     });
     doc.save('Medicine_Stock_Report.pdf');
@@ -1631,20 +1661,40 @@ function downloadPDF() {
     doc.setFontSize(10); doc.setFont('helvetica','normal');
     doc.text('Patient: ' + (p ? p.name : '—'),15,32); doc.text('Invoice: ' + inv.number,15,38); doc.text('Date: ' + todayDMY(),15,44);
 
-    let startY = 50; let rowHeight = 10;
+    let startY = 50; 
     const col1 = 15; const col2 = 30; const col3 = 160;
-    doc.setLineWidth(0.2); doc.rect(15,startY,180,rowHeight);
-    doc.line(col2,startY,col2,startY+rowHeight); doc.line(col3,startY,col3,startY+rowHeight);
 
-    doc.setFont('helvetica','bold'); doc.setFontSize(9);
-    doc.text('SL',20,startY+6); doc.text('MEDICINE NAME',40,startY+6); doc.text('QUANTITY',165,startY+6);
+    function drawInvoiceHeader(currentY) {
+      doc.setLineWidth(0.2); doc.rect(15,currentY,180,10);
+      doc.line(col2,currentY,col2,currentY+10); doc.line(col3,currentY,col3,currentY+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('SL',20,currentY+6); doc.text('MEDICINE NAME',40,currentY+6); doc.text('QUANTITY',165,currentY+6);
+      return currentY + 10;
+    }
 
-    let y = startY + rowHeight;
+    let y = drawInvoiceHeader(startY);
+
     inv.entries.forEach((e,i) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+
+      // Split text into multi-line array and dynamically calculate row height
+      let splitName = doc.splitTextToSize(e.name, 115);
+      let rowHeight = Math.max(10, splitName.length * 5 + 4);
+
+      // Add new page if content overflows
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = drawInvoiceHeader(20);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      }
+
       doc.rect(15,y,180,rowHeight);
       doc.line(col2,y,col2,y+rowHeight); doc.line(col3,y,col3,y+rowHeight);
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
-      doc.text(String(i+1),20,y+6); doc.text(e.name.substring(0,45),40,y+6); doc.text(String(e.qty),165,y+6);
+      
+      doc.text(String(i+1),20,y+6); 
+      doc.text(splitName,40,y+6); 
+      doc.text(String(e.qty),165,y+6);
+      
       y += rowHeight;
     });
     doc.save('Medicine_Order_List.pdf');
@@ -1652,7 +1702,7 @@ function downloadPDF() {
 
   closeModal('modal-share'); showToast('PDF downloaded ✅','success');
 }
-function copyReportText() {
+  function copyReportText() {
   let text = 'MEDISTOCK\n';
   if (pdfMode==='stock') {
     const meds = getMedicines(currentPatientId);
