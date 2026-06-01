@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +10,7 @@
 <meta name="theme-color" content="#1976D2">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
-<!-- Firebase Compat SDKs (For easy Vanilla JS Integration) -->
+<!-- Firebase Compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -173,18 +175,8 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 .report-table th { background: var(--hdr); color: #fff; padding: 9px 8px; text-align: left; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
 .report-table th:first-child { border-radius: 6px 0 0 0; }
 .report-table th:last-child { border-radius: 0 6px 0 0; }
-/* Update this in your CSS styles block */
-.report-table td {
-  padding: 9px 8px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-  font-size: 13px;
-  
-  /* ADD THESE LINES BELOW */
-  white-space: pre-line; /* Preserves line breaks entered into the textarea */
-  word-break: break-word; /* Prevents long single words from breaking your table structure */
-}
-  .report-table tr:nth-child(even) td { background: #F8FAFF; }
+.report-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 13px; white-space: pre-line; word-break: break-word; }
+.report-table tr:nth-child(even) td { background: #F8FAFF; }
 .report-table tr.low-stock td { color: var(--danger); background: #FFF8F8; }
 
 /* ── DETAIL PAGE ─────────────────────────────────────────────────── */
@@ -441,7 +433,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
         </div>
         <div class="dash-card" onclick="showModule('low-stock')" id="tile-low-stock">
           <div class="card-icon-wrap ic-red">⚠️</div>
-          <div class="card-label">Low Stock Alert</div>
+          <div class="card-label">Stock Predictions</div>
           <div class="card-count" id="tile-count-low">Check now</div>
         </div>
       </div>
@@ -495,13 +487,6 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
         <button class="back-btn" onclick="hideSubPage()" style="color:var(--accent);">← Back</button>
       </div>
       <div class="settings-card">
-        <div class="settings-card-header"><h3>Low Stock Alerts</h3></div>
-        <div style="padding:14px 16px;">
-          <div class="form-group"><label>Minimum Stock Threshold</label><input type="number" id="low-stock-threshold" placeholder="e.g. 10" min="1"></div>
-          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-        </div>
-      </div>
-      <div class="settings-card">
         <div class="settings-card-header"><h3>Appearance</h3></div>
         <div class="setting-row">
           <div><div class="setting-label">Theme Mode</div><div class="setting-sub">Toggle light / dark</div></div>
@@ -547,15 +532,25 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
   <div class="main-content form-page">
     <div class="form-section-title">Medicine Details</div>
     <div class="form-group"><label>Medicine Name *</label><textarea type="text" id="med-name" placeholder="e.g. Paracetamol 500mg" autocomplete="off" autocorrect="off" spellcheck="false"></textarea></div>
+    
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div class="form-group"><label>Stock Quantity *</label><input type="number" id="med-qty" placeholder="e.g. 100" min="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
       <div class="form-group"><label>Price (₹)</label><input type="number" id="med-price" placeholder="50.00" step="0.01" min="0"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="form-group"><label>Packed Type</label><select id ="med-packed"><option>Tab</option><option>Sachet</option></select></div><!-- med-packed -->
+      <div class="form-group"><label>Packed Type</label><select id ="med-packed"><option>Tab</option><option>Sachet</option></select></div>
       <div class="form-group"><label>Packed Quantity</label><input type="number" id="med-packed-qty" placeholder="e.g. 10" min="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
     </div>
-    <div class="form-group"><label>Usage / Dosage</label><textarea id="med-usage" placeholder="e.g. 1 tablet twice daily after meals" rows="2"></textarea></div>
+
+    <!-- NEW DOSAGE COMPONENT -->
+    <div class="form-section-title">Dosage Setup (Auto Deduct)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Morning (9:00 AM)</label><input type="number" id="dose-morning" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Noon (1:00 PM)</label><input type="number" id="dose-noon" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Evening (4:00 PM)</label><input type="number" id="dose-evening" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Night (10:00 PM)</label><input type="number" id="dose-night" placeholder="Qty" min="0"></div>
+    </div>
+
     <div class="form-section-title">Supplier Details</div>
     <div class="form-group"><label>Manufacturer</label><input type="text" id="med-mfr" placeholder="e.g. Sun Pharma"></div>
     <div class="form-group"><label>Distributor</label><input type="text" id="med-dist" placeholder="e.g. MedPro Distributors"></div>
@@ -733,15 +728,15 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 <div class="page" id="page-low-stock">
   <div class="app-header">
     <button class="back-btn" onclick="backToHome()">← Back</button>
-    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Low Stock Alert</div>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Stock Predictions</div>
   </div>
   <div class="main-content">
     <div style="height:12px;"></div>
     <div id="low-stock-list"></div>
     <div id="low-stock-empty" class="empty-state" style="display:none">
       <div class="empty-icon">✅</div>
-      <div class="empty-title" style="color:var(--success);">All stocks are healthy!</div>
-      <div class="empty-sub">No medicines below the configured threshold.</div>
+      <div class="empty-title" style="color:var(--success);">Healthy Stock Levels!</div>
+      <div class="empty-sub">No medicines are running out soon.</div>
     </div>
   </div>
 </div>
@@ -865,6 +860,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
       <div class="form-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="bp-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="autoSlashDate(this)"></div>
       <div class="form-group"><label>Time</label><input type="text" id="bp-time"></div>
     </div>
+    
     <div class="form-group">
       <label>Blood Pressure</label>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -873,6 +869,16 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Format: Systolic/Diastolic e.g. 120/80</div>
     </div>
+
+    <!-- NEW PULSE FIELD -->
+    <div class="form-group">
+      <label>Pulse (Optional)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="bp-pulse" placeholder="e.g. 72" style="flex:1;" min="0" max="300">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:11px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);white-space:nowrap;">BPM</span>
+      </div>
+    </div>
+
     <button class="btn btn-primary" onclick="saveBPEntry()">💾 Save Entry</button>
 
     <div class="form-section-title" style="margin-top:20px;">Saved Readings</div>
@@ -975,14 +981,14 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 <script>
   // REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIGURATION
   const firebaseConfig = {
-  apiKey: "AIzaSyAbeT7St4cOqf-U71jbkyaRMdZV0rt4-AY",
+   apiKey: "AIzaSyAbeT7St4cOqf-U71jbkyaRMdZV0rt4-AY",
   authDomain: "medistock-daeac.firebaseapp.com",
   databaseURL: "https://medistock-daeac-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "medistock-daeac",
   storageBucket: "medistock-daeac.firebasestorage.app",
   messagingSenderId: "264143388382",
   appId: "1:264143388382:web:3c1e444e244e24dd18cc4f"
-};
+  };
   
   if(firebaseConfig.apiKey === "YOUR_API_KEY") {
      console.warn("⚠️ Warning: Please replace the placeholder Firebase config with your actual credentials!");
@@ -1000,15 +1006,16 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 let currentUser = null, currentPatientId = null;
 let editingOrderEntries = [], pendingDeleteFn = null, currentInvoiceId = null;
 
-/* ── STATE & DATA SYNCHRONIZATION ────────────────────────────────── */
-let appData = {
-  patients: [],
-  medicines: {},
-  invoices: {},
-  bs: {},
-  bp: {},
-  settings: { threshold: 10 }
+// Dosage Execution Times in Minutes since midnight
+const DOSE_TIMES = {
+    morning: 9 * 60,   // 09:00 AM
+    noon: 13 * 60,     // 01:00 PM
+    evening: 16 * 60,  // 04:00 PM
+    night: 22 * 60     // 10:00 PM
 };
+
+/* ── STATE & DATA SYNCHRONIZATION ────────────────────────────────── */
+let appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {} };
 
 function syncToFirebase() {
   if (currentUser && currentUser.uid) {
@@ -1016,19 +1023,132 @@ function syncToFirebase() {
   }
 }
 
-// Data Accessors mapping to memory instead of localStorage
+// Data Accessors
 const getPatients = () => appData.patients || [];
 const savePatients = p => { appData.patients = p; syncToFirebase(); };
 const getMedicines = pid => appData.medicines[pid] || [];
 const saveMedicines = (pid, m) => { appData.medicines[pid] = m; syncToFirebase(); };
 const getInvoices = pid => appData.invoices[pid] || [];
 const saveInvoices = (pid, inv) => { appData.invoices[pid] = inv; syncToFirebase(); };
-const getSettings = () => appData.settings || { threshold: 10 };
+const getSettings = () => appData.settings || {};
 const saveSettingsDB = s => { appData.settings = s; syncToFirebase(); };
 const getBSEntries = pid => appData.bs[pid] || [];
 const saveBSEntries = (pid, e) => { appData.bs[pid] = e; syncToFirebase(); };
 const getBPEntries = pid => appData.bp[pid] || [];
 const saveBPEntries = (pid, e) => { appData.bp[pid] = e; syncToFirebase(); };
+
+/* ── DATE HELPERS ────────────────────────────────────────────────── */
+function fmtDate(d) {
+  if (!d) d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return dd+'/'+mm+'/'+yyyy;
+}
+function parseDateToObj(ddmmyyyy) {
+  if(!ddmmyyyy) return new Date(0);
+  let [d,m,y] = ddmmyyyy.split('/');
+  return new Date(y, m-1, d);
+}
+function autoSlashDate(inp) {
+  let v = inp.value.replace(/[^\d]/g,'');
+  if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
+  if (v.length > 5) v = v.slice(0,5)+'/'+v.slice(5);
+  inp.value = v.slice(0,10);
+}
+function parseDateSort(dstr) {
+  if (!dstr) return '';
+  const p = dstr.split('/');
+  if (p.length !== 3) return dstr;
+  return p[2]+'-'+p[1]+'-'+p[0];
+}
+function todayDMY() { return fmtDate(new Date()); }
+function format12Hour(timeStr) {
+  if (!timeStr || !timeStr.includes(':')) return timeStr;
+  let [hours, minutes] = timeStr.split(':');
+  hours = parseInt(hours, 10);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  return hours + ':' + minutes + ' ' + ampm;
+}
+function nowTime() {
+  const n = new Date();
+  let hours = n.getHours();
+  const minutes = String(n.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  return String(hours).padStart(2, '0') + ':' + minutes + ' ' + ampm;
+}
+
+/* ── AUTO DEDUCTION ENGINE ───────────────────────────────────────── */
+function runAutoDeduction() {
+    if (!currentPatientId) return;
+    let meds = getMedicines(currentPatientId);
+    let updated = false;
+    const now = new Date();
+    const todayStr = fmtDate(now);
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    
+    meds.forEach(m => {
+        if (!m.dosage || !m.lastDeducted) return;
+        
+        ['morning', 'noon', 'evening', 'night'].forEach(slot => {
+            let dose = parseInt(m.dosage[slot]) || 0;
+            if (dose > 0 && m.qty > 0) {
+                let lastStr = m.lastDeducted[slot];
+                let lastD = parseDateToObj(lastStr);
+                let currD = parseDateToObj(todayStr);
+                
+                // Safe difference ignoring local timezone changes
+                let utcLast = Date.UTC(lastD.getFullYear(), lastD.getMonth(), lastD.getDate());
+                let utcCurr = Date.UTC(currD.getFullYear(), currD.getMonth(), currD.getDate());
+                let diffDays = Math.floor((utcCurr - utcLast) / (1000 * 3600 * 24));
+                
+                if (diffDays > 0) {
+                    // missed full days prior to today
+                    let fullDays = diffDays - 1;
+                    if (fullDays > 0) {
+                        m.qty = Math.max(0, m.qty - (dose * fullDays));
+                        updated = true;
+                    }
+                    
+                    // process for today
+                    if (m.qty > 0 && nowMins >= DOSE_TIMES[slot]) {
+                        m.qty = Math.max(0, m.qty - dose);
+                        m.lastDeducted[slot] = todayStr;
+                        updated = true;
+                    } else if (nowMins < DOSE_TIMES[slot]) {
+                        // Not time for today's dose yet. Set it back to yesterday.
+                        let yest = new Date(now);
+                        yest.setDate(yest.getDate() - 1);
+                        m.lastDeducted[slot] = fmtDate(yest);
+                    }
+                }
+            }
+        });
+    });
+    
+    if (updated) {
+        saveMedicines(currentPatientId, meds);
+        updateTileCounts();
+        if (document.getElementById('page-view-stock').classList.contains('active')) renderViewStock();
+        if (document.getElementById('page-low-stock').classList.contains('active')) renderLowStock();
+        if (document.getElementById('page-stock-report').classList.contains('active')) renderStockReport();
+    }
+}
+
+// Global Low Stock check - uses predicted days to run out (<= 7 days)
+function isMedLow(m) {
+    let dailyDose = 0;
+    if (m.dosage) {
+        dailyDose = (parseInt(m.dosage.morning)||0) + (parseInt(m.dosage.noon)||0) + 
+                    (parseInt(m.dosage.evening)||0) + (parseInt(m.dosage.night)||0);
+    }
+    if (dailyDose > 0) return Math.floor(m.qty / dailyDose) <= 7;
+    return m.qty <= 10; // Fallback safe threshold if no dosage configured
+}
 
 /* ── NAVIGATION ──────────────────────────────────────────────────── */
 function showPage(id) {
@@ -1066,7 +1186,6 @@ function initTheme() {
 /* ── FIREBASE AUTHENTICATION ─────────────────────────────────────── */
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // Check if email verified (allow pass for Google Auth which is automatically verified usually)
     if (user.providerData.some(p => p.providerId === 'password') && !user.emailVerified) {
       showToast('Please verify your email address. Check your inbox.', 'warning');
       auth.signOut();
@@ -1075,20 +1194,15 @@ auth.onAuthStateChanged((user) => {
     
     currentUser = { uid: user.uid, email: user.email, name: user.displayName || 'User' };
     
-    // Load Data from RTDB
     db.ref('users/' + user.uid + '/data').once('value').then(snap => {
       if (snap.exists()) {
-        const data = snap.val();
-        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: { threshold: 10 } }, data);
+        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {} }, snap.val());
       } else {
-        // Initialize Default Empty Object
-        appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: { threshold: 10 } };
+        appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {} };
         syncToFirebase();
       }
       loadHome();
-      if (auth.currentUser) {
-   showPage('page-home');
-      }
+      if (auth.currentUser) showPage('page-home');
       showToast('Welcome, ' + currentUser.name.split(' ')[0] + '! 👋', 'success');
     }).catch(err => {
       showToast('Error loading data: ' + err.message, 'error');
@@ -1096,7 +1210,7 @@ auth.onAuthStateChanged((user) => {
 
   } else {
     currentUser = null;
-    appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: { threshold: 10 } };
+    appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {} };
     showPage('page-auth');
   }
 });
@@ -1176,7 +1290,7 @@ function hideSubPage() {
   if (currentPatientId) updateTileCounts();
 }
 
-/* ── PROFILE ─────────────────────────────────────────────────────── */
+/* ── PROFILE & SETTINGS ──────────────────────────────────────────── */
 function saveProfile() {
   const name = document.getElementById('prof-name').value.trim();
   if (!name) return showToast('Name is required','error');
@@ -1191,14 +1305,9 @@ function saveProfile() {
   }
 }
 
-function saveSettings() {
-  const t = parseInt(document.getElementById('low-stock-threshold').value) || 10;
-  saveSettingsDB({ threshold: t }); showToast('Settings saved ✅','success');
-}
-
 /* ── BACKUP ──────────────────────────────────────────────────────── */
 function exportBackup() {
-  const data = { version: 3, exported: todayDMY(), appData: appData };
+  const data = { version: 4, exported: todayDMY(), appData: appData };
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download = 'medistock_backup_'+todayDMY().replace(/\//g,'-')+'.json'; a.click();
@@ -1211,13 +1320,11 @@ function importBackup(e) {
     try {
       const d = JSON.parse(ev.target.result);
       if(d.appData) {
-        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: { threshold: 10 } }, d.appData);
+        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {} }, d.appData);
         syncToFirebase();
         showToast('Backup restored ✅ Reloading...','success');
         setTimeout(() => window.location.reload(), 1500);
-      } else {
-        showToast('Invalid backup format','error');
-      }
+      } else { showToast('Invalid backup format','error'); }
     } catch { showToast('Failed to restore backup','error'); }
   };
   reader.readAsText(file);
@@ -1232,7 +1339,7 @@ function loadHome() {
   document.getElementById('prof-email').value = currentUser.email;
   document.getElementById('prof-disp-name').textContent = currentUser.name;
   document.getElementById('prof-disp-email').textContent = currentUser.email;
-  document.getElementById('low-stock-threshold').value = getSettings().threshold;
+  
   document.getElementById('welcome-banner').style.display = 'block';
   document.getElementById('welcome-text').textContent = 'Hello, ' + currentUser.name.split(' ')[0] + '! 👋';
   renderPatientSelect();
@@ -1258,6 +1365,7 @@ function onPatientChange() {
     const p = getPatients().find(x => x.id === currentPatientId);
     document.getElementById('selected-patient-chip').innerHTML =
       '<span class="chip">👤 ' + (p ? p.name : '') + '</span>';
+    runAutoDeduction();
     updateTileCounts();
   }
 }
@@ -1265,14 +1373,16 @@ function updateTileCounts() {
   if (!currentPatientId) return;
   const meds = getMedicines(currentPatientId);
   const inv = getInvoices(currentPatientId);
-  const settings = getSettings();
-  const lowCount = meds.filter(m => m.qty <= settings.threshold).length;
+  const lowCount = meds.filter(m => isMedLow(m)).length;
+  
   document.getElementById('tile-count-stock').textContent = meds.length + ' medicine' + (meds.length !== 1 ? 's' : '');
   document.getElementById('tile-count-report').textContent = 'View ' + meds.length + ' items';
   document.getElementById('tile-count-inv').textContent = inv.length + ' invoice' + (inv.length !== 1 ? 's' : '');
-  document.getElementById('tile-count-low').textContent = lowCount ? lowCount + ' item' + (lowCount !== 1 ? 's' : '') + ' low' : 'All healthy';
+  document.getElementById('tile-count-low').textContent = lowCount ? lowCount + ' items low' : 'All healthy';
+  
   const low = document.getElementById('tile-low-stock');
   if (low) low.style.borderColor = lowCount ? '#FFCDD2' : '';
+  
   const bsCount = getBSEntries(currentPatientId).length;
   const bpCount = getBPEntries(currentPatientId).length;
   document.getElementById('tile-count-bs').textContent = bsCount ? bsCount + ' reading' + (bsCount !== 1 ? 's' : '') : 'Log reading';
@@ -1319,7 +1429,7 @@ function showModule(mod) {
 
 /* ── MEDICINE FORM ───────────────────────────────────────────────── */
 function clearAddStockForm() {
-  ['med-name','med-qty','med-price','med-usage','med-mfr','med-dist'].forEach(id => document.getElementById(id).value = '');
+  ['med-name','med-qty','med-price','med-mfr','med-dist','dose-morning','dose-noon','dose-evening','dose-night'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('med-packed').value = '';
   document.getElementById('editing-med-id').value = '';
 }
@@ -1329,20 +1439,44 @@ function saveMedicine() {
   const name = document.getElementById('med-name').value.trim();
   const qty = document.getElementById('med-qty').value;
   if (!name||qty==='') return showToast('Medicine name and quantity are required','error');
+  
+  const doseM = parseInt(document.getElementById('dose-morning').value) || 0;
+  const doseN = parseInt(document.getElementById('dose-noon').value) || 0;
+  const doseE = parseInt(document.getElementById('dose-evening').value) || 0;
+  const doseNt = parseInt(document.getElementById('dose-night').value) || 0;
+  
   const meds = getMedicines(currentPatientId);
   const editId = document.getElementById('editing-med-id').value;
   const existing = editId ? meds.find(m => m.id === editId) : null;
+  
+  // Safe initialization of last deducted timestamps for brand new settings
+  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+  const today = todayDMY();
+  let yestD = new Date(); yestD.setDate(yestD.getDate() - 1);
+  const yesterday = fmtDate(yestD);
+  
+  let currentLastDeducted = existing ? (existing.lastDeducted || {}) : {};
+  let lastDeductedObj = {
+      morning: currentLastDeducted.morning || (nowMins >= DOSE_TIMES.morning ? today : yesterday),
+      noon: currentLastDeducted.noon || (nowMins >= DOSE_TIMES.noon ? today : yesterday),
+      evening: currentLastDeducted.evening || (nowMins >= DOSE_TIMES.evening ? today : yesterday),
+      night: currentLastDeducted.night || (nowMins >= DOSE_TIMES.night ? today : yesterday)
+  };
+
   const med = {
     id: editId || 'm_'+Date.now(), name, qty: parseInt(qty),
     price: parseFloat(document.getElementById('med-price').value)||0,
     packed: document.getElementById('med-packed').value,
-    usage: document.getElementById('med-usage').value.trim(),
+    dosage: { morning: doseM, noon: doseN, evening: doseE, night: doseNt },
+    lastDeducted: lastDeductedObj,
     mfr: document.getElementById('med-mfr').value.trim(),
     dist: document.getElementById('med-dist').value.trim(),
     created: existing ? existing.created : todayDMY()
   };
+  
   if (editId) { const idx = meds.findIndex(m => m.id === editId); if (idx !== -1) meds[idx] = med; }
   else meds.push(med);
+  
   saveMedicines(currentPatientId, meds);
   showToast(editId ? 'Medicine updated ✅' : 'Medicine added ✅','success');
   backToHome();
@@ -1356,37 +1490,43 @@ function renderViewStock() {
   const empty = document.getElementById('view-stock-empty');
   if (!meds.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  const settings = getSettings();
-  list.innerHTML = meds.map(m => `
+  
+  list.innerHTML = meds.map(m => {
+    let lowBadge = isMedLow(m) ? '<span class="badge badge-low">Low</span>' : '';
+    return `
     <div class="med-card">
       <div class="med-thumb" onclick="openMedDetail('${m.id}')">💊</div>
       <div class="med-info" onclick="openMedDetail('${m.id}')">
         <div class="med-name">${m.name}</div>
         <div class="med-sub">Qty: ${m.qty} &nbsp;·&nbsp; ₹${m.price.toFixed(2)}</div>
       </div>
-      ${m.qty <= settings.threshold ? '<span class="badge badge-low">Low</span>' : ''}
+      ${lowBadge}
       <div class="med-actions">
         <button class="btn btn-outline btn-sm btn-icon-sq" onclick="editMed('${m.id}')">✏️</button>
         <button class="btn btn-danger btn-sm btn-icon-sq" onclick="confirmDeleteMed('${m.id}')">🗑️</button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
+
 function openMedDetail(id) {
   const m = getMedicines(currentPatientId).find(x => x.id === id);
   if (!m) return;
   document.getElementById('detail-page-title').textContent = m.name;
   
+  let doseStr = m.dosage ? `M: ${m.dosage.morning||0}, N: ${m.dosage.noon||0}, E: ${m.dosage.evening||0}, Nt: ${m.dosage.night||0}` : '—';
+  
   document.getElementById('detail-info').innerHTML = [
     ['Medicine Name', m.name], ['Stock Quantity', m.qty],
     ['Price', '₹' + m.price.toFixed(2)], ['Packed Type', m.packed||'—'],
-    ['Usage', m.usage||'—'], ['Manufacturer', m.mfr||'—'],
+    ['Dosage (M/N/E/Nt)', doseStr], ['Manufacturer', m.mfr||'—'],
     ['Distributor', m.dist||'—'], ['Created', m.created]
   ].map(([l,v]) => `<div class="detail-row"><div class="detail-lbl">${l}</div><div class="detail-val">${v}</div></div>`).join('');
   document.getElementById('detail-edit-btn').onclick = () => editMed(id);
   document.getElementById('detail-delete-btn').onclick = () => confirmDeleteMed(id);
   showPage('page-med-detail');
 }
+
 function editMed(id) {
   const m = getMedicines(currentPatientId).find(x => x.id === id);
   if (!m) return;
@@ -1395,12 +1535,20 @@ function editMed(id) {
   document.getElementById('med-qty').value = m.qty;
   document.getElementById('med-price').value = m.price;
   document.getElementById('med-packed').value = m.packed;
-  document.getElementById('med-usage').value = m.usage;
-  document.getElementById('med-mfr').value = m.mfr;
-  document.getElementById('med-dist').value = m.dist;
+  
+  if(m.dosage) {
+      document.getElementById('dose-morning').value = m.dosage.morning || '';
+      document.getElementById('dose-noon').value = m.dosage.noon || '';
+      document.getElementById('dose-evening').value = m.dosage.evening || '';
+      document.getElementById('dose-night').value = m.dosage.night || '';
+  }
+  
+  document.getElementById('med-mfr').value = m.mfr || '';
+  document.getElementById('med-dist').value = m.dist || '';
   document.getElementById('editing-med-id').value = m.id;
   showPage('page-add-stock');
 }
+
 function confirmDeleteMed(id) {
   pendingDeleteFn = () => {
     saveMedicines(currentPatientId, getMedicines(currentPatientId).filter(m => m.id !== id));
@@ -1417,11 +1565,11 @@ function confirmDeleteMed(id) {
 function renderStockReport() {
   const meds = getMedicines(currentPatientId);
   const p = getPatients().find(x => x.id === currentPatientId);
-  const settings = getSettings();
+  
   document.getElementById('report-patient-sub').textContent = 'Patient: ' + (p ? p.name : '—') + '   |   Date: ' + todayDMY();
   document.getElementById('stock-report-body').innerHTML = meds.map((m,i) => `
-    <tr class="${m.qty <= settings.threshold ? 'low-stock' : ''}">
-      <td>${i+1}</td><td>${m.name}${m.qty<=settings.threshold?' ⚠️':''}</td>
+    <tr class="${isMedLow(m) ? 'low-stock' : ''}">
+      <td>${i+1}</td><td>${m.name}${isMedLow(m)?' ⚠️':''}</td>
       <td>${m.qty}</td><td>₹${m.price.toFixed(2)}</td>
     </tr>
   `).join('');
@@ -1431,13 +1579,13 @@ function renderStockReport() {
 function renderStockOut() {
   const q = (document.getElementById('stockout-search').value||'').toLowerCase();
   const meds = getMedicines(currentPatientId).filter(m => !q || m.name.toLowerCase().includes(q));
-  const settings = getSettings();
+  
   document.getElementById('stock-out-list').innerHTML = meds.map(m => `
     <div class="med-card">
       <div class="med-thumb">💊</div>
       <div class="med-info">
         <div class="med-name">${m.name}</div>
-        <div class="med-sub">In Stock: <strong style="color:${m.qty<=settings.threshold?'var(--danger)':'var(--success)'};">${m.qty}</strong> units</div>
+        <div class="med-sub">In Stock: <strong style="color:${isMedLow(m)?'var(--danger)':'var(--success)'};">${m.qty}</strong> units</div>
       </div>
       <button class="btn btn-outline btn-sm" onclick="openManageStock('${m.id}')">Manage</button>
     </div>
@@ -1446,7 +1594,6 @@ function renderStockOut() {
 function openManageStock(id) {
   const m = getMedicines(currentPatientId).find(x => x.id === id);
   if (!m) return;
-  const settings = getSettings();
   document.getElementById('manage-med-id').value = id;
   document.getElementById('qty-used').value = '';
   document.getElementById('manage-stock-info').innerHTML = `
@@ -1454,7 +1601,7 @@ function openManageStock(id) {
     <div class="manage-stats">
       <div class="manage-stat">
         <div class="manage-stat-label">In Stock</div>
-        <div class="manage-stat-val" style="color:${m.qty<=settings.threshold?'var(--danger)':'var(--success)'};">${m.qty}</div>
+        <div class="manage-stat-val" style="color:${isMedLow(m)?'var(--danger)':'var(--success)'};">${m.qty}</div>
       </div>
       <div class="manage-stat">
         <div class="manage-stat-label">Price</div>
@@ -1473,9 +1620,12 @@ function submitStockOut() {
   const idx = meds.findIndex(m => m.id === id);
   if (idx === -1) return;
   if (used > meds[idx].qty) return showToast('Exceeds available stock','error');
-  meds[idx].qty -= used; saveMedicines(currentPatientId, meds);
-  const low = meds[idx].qty <= getSettings().threshold;
-  showToast(low ? '⚠️ Low stock: ' + meds[idx].name : 'Stock updated ✅ Remaining: ' + meds[idx].qty, low ? 'error' : 'success');
+  
+  meds[idx].qty -= used; 
+  saveMedicines(currentPatientId, meds);
+  
+  const low = isMedLow(meds[idx]);
+  showToast(low ? '⚠️ Low stock predict: ' + meds[idx].name : 'Stock updated ✅ Remaining: ' + meds[idx].qty, low ? 'error' : 'success');
   showPage('page-stock-out'); renderStockOut();
 }
 
@@ -1564,28 +1714,62 @@ function confirmDeleteInvoice(id) {
   openModal('modal-confirm');
 }
 
-/* ── LOW STOCK ───────────────────────────────────────────────────── */
+/* ── LOW STOCK PREDICTIONS ───────────────────────────────────────── */
 function renderLowStock() {
   const meds = getMedicines(currentPatientId);
-  const settings = getSettings();
-  const low = meds.filter(m => m.qty <= settings.threshold);
   const list = document.getElementById('low-stock-list');
   const empty = document.getElementById('low-stock-empty');
-  if (!low.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  
+  if (!meds.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  
+  let predictions = meds.map(m => {
+      let dailyDose = 0;
+      if (m.dosage) {
+          dailyDose = (parseInt(m.dosage.morning)||0) + (parseInt(m.dosage.noon)||0) + 
+                      (parseInt(m.dosage.evening)||0) + (parseInt(m.dosage.night)||0);
+      }
+      
+      let daysLeft = Infinity;
+      let dateStr = 'No auto-dosage configured';
+      let isLow = false;
+      
+      if (dailyDose > 0) {
+          daysLeft = Math.floor(m.qty / dailyDose);
+          let d = new Date();
+          d.setDate(d.getDate() + daysLeft);
+          dateStr = fmtDate(d);
+          isLow = daysLeft <= 7;
+      } else {
+          isLow = m.qty <= 10;
+      }
+      
+      return { ...m, dailyDose, daysLeft, dateStr, isLow };
+  });
+  
+  predictions.sort((a,b) => a.daysLeft - b.daysLeft);
+  
+  let hasItems = predictions.some(p => p.qty > 0 || p.daysLeft < Infinity);
+  if(!hasItems && !predictions.length){ empty.style.display='block'; return; }
+  
   empty.style.display='none';
-  list.innerHTML = low.map(m => `
-    <div class="low-med-card">
-      <div class="low-alert-icon">⚠️</div>
-      <div style="flex:1;">
-        <div class="med-name">${m.name}</div>
-        <div class="med-sub">Stock: <strong style="color:var(--danger);">${m.qty} units</strong> · ₹${m.price.toFixed(2)}</div>
+  list.innerHTML = predictions.map(m => `
+      <div class="low-med-card" style="${m.isLow ? '' : 'border-color:var(--border); box-shadow:var(--card-shadow);'}">
+        <div class="low-alert-icon" style="${m.isLow ? '' : 'background:var(--accent-soft); color:var(--accent);'}">
+          ${m.isLow ? '⚠️' : '📅'}
+        </div>
+        <div style="flex:1;">
+          <div class="med-name">${m.name}</div>
+          <div class="med-sub">Stock: <strong style="color:${m.isLow ? 'var(--danger)' : 'var(--text-primary)'};">${m.qty} units</strong></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+             Depletion: <strong>${m.dateStr}</strong> ${m.daysLeft !== Infinity ? `(${m.daysLeft} days left)` : ''}
+          </div>
+        </div>
+        ${m.isLow ? '<span class="badge badge-low">LOW</span>' : ''}
       </div>
-      <span class="badge badge-low">LOW</span>
-    </div>
   `).join('');
 }
 
-/* ── PDF ─────────────────────────────────────────────────────────── */
+/* ── PDF & EXPORT ────────────────────────────────────────────────── */
 let pdfMode = 'stock';
 function shareReport() { pdfMode='stock'; openModal('modal-share'); }
 function shareInvoice() { pdfMode='invoice'; openModal('modal-share'); }
@@ -1597,7 +1781,6 @@ function downloadPDF() {
   if (pdfMode === 'stock') {
     const meds = getMedicines(currentPatientId);
     const p = getPatients().find(x => x.id === currentPatientId);
-    const settings = getSettings();
 
     doc.setTextColor(0,0,0); doc.setFontSize(16); doc.setFont('helvetica','bold');
     doc.text('MEDICINE STOCK LIST',105,20,{align:'center'});
@@ -1610,7 +1793,6 @@ function downloadPDF() {
     let startY = 45; 
     const col1 = 15; const col2 = 30; const col3 = 130; const col4 = 155;
 
-    // Helper function to draw table header
     function drawStockHeader(currentY) {
       doc.setLineWidth(0.3); doc.rect(col1,currentY,180,10);
       doc.line(col2,currentY,col2,currentY+10); doc.line(col3,currentY,col3,currentY+10); doc.line(col4,currentY,col4,currentY+10);
@@ -1624,12 +1806,10 @@ function downloadPDF() {
     meds.forEach((m,i) => {
       doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
       
-      // Split text into multi-line array and dynamically calculate row height
-      let medNameStr = m.name + (m.qty <= settings.threshold ? '  [LOW]' : '');
+      let medNameStr = m.name + (isMedLow(m) ? '  [LOW]' : '');
       let splitName = doc.splitTextToSize(medNameStr, 90);
       let rowHeight = Math.max(10, splitName.length * 5 + 4);
 
-      // Add new page if content overflows
       if (y + rowHeight > 280) {
         doc.addPage();
         y = drawStockHeader(20);
@@ -1639,9 +1819,8 @@ function downloadPDF() {
       doc.setLineWidth(0.2); doc.rect(col1,y,180,rowHeight);
       doc.line(col2,y,col2,y+rowHeight); doc.line(col3,y,col3,y+rowHeight); doc.line(col4,y,col4,y+rowHeight);
 
-      // Draw Top-aligned texts
       doc.text(String(i+1),20,y+6); 
-      doc.text(splitName,35,y+6);  // passing array renders multi-line
+      doc.text(splitName,35,y+6);  
       doc.text(String(m.qty),138,y+6); 
       doc.text('Rs.' + m.price.toFixed(2),162,y+6);
       
@@ -1677,11 +1856,9 @@ function downloadPDF() {
     inv.entries.forEach((e,i) => {
       doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
 
-      // Split text into multi-line array and dynamically calculate row height
       let splitName = doc.splitTextToSize(e.name, 115);
       let rowHeight = Math.max(10, splitName.length * 5 + 4);
 
-      // Add new page if content overflows
       if (y + rowHeight > 280) {
         doc.addPage();
         y = drawInvoiceHeader(20);
@@ -1702,7 +1879,7 @@ function downloadPDF() {
 
   closeModal('modal-share'); showToast('PDF downloaded ✅','success');
 }
-  function copyReportText() {
+function copyReportText() {
   let text = 'MEDISTOCK\n';
   if (pdfMode==='stock') {
     const meds = getMedicines(currentPatientId);
@@ -1714,46 +1891,6 @@ function downloadPDF() {
   }
   navigator.clipboard.writeText(text).then(() => showToast('Copied!','success')).catch(() => showToast('Copy failed','error'));
   closeModal('modal-share');
-}
-
-/* ── DATE HELPERS ────────────────────────────────────────────────── */
-function fmtDate(d) {
-  if (!d) d = new Date();
-  const dd = String(d.getDate()).padStart(2,'0');
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const yyyy = d.getFullYear();
-  return dd+'/'+mm+'/'+yyyy;
-}
-function autoSlashDate(inp) {
-  let v = inp.value.replace(/[^\d]/g,'');
-  if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
-  if (v.length > 5) v = v.slice(0,5)+'/'+v.slice(5);
-  inp.value = v.slice(0,10);
-}
-function parseDateSort(dstr) {
-  if (!dstr) return '';
-  const p = dstr.split('/');
-  if (p.length !== 3) return dstr;
-  return p[2]+'-'+p[1]+'-'+p[0];
-}
-function todayDMY() { return fmtDate(new Date()); }
-function format12Hour(timeStr) {
-  if (!timeStr || !timeStr.includes(':')) return timeStr;
-  let [hours, minutes] = timeStr.split(':');
-  hours = parseInt(hours, 10);
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; 
-  return hours + ':' + minutes + ' ' + ampm;
-}
-function nowTime() {
-  const n = new Date();
-  let hours = n.getHours();
-  const minutes = String(n.getMinutes()).padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; 
-  return String(hours).padStart(2, '0') + ':' + minutes + ' ' + ampm;
 }
 
 /* ── BLOOD SUGAR LEVEL ───────────────────────────────────────────── */
@@ -1958,6 +2095,7 @@ function initBPForm() {
   document.getElementById('bp-date').value = todayDMY();
   document.getElementById('bp-time').value = nowTime();
   document.getElementById('bp-count').value = '';
+  document.getElementById('bp-pulse').value = '';
 }
 
 function saveBPEntry() {
@@ -1965,12 +2103,16 @@ function saveBPEntry() {
   const date  = document.getElementById('bp-date').value.trim();
   const time  = document.getElementById('bp-time').value;
   const count = document.getElementById('bp-count').value.trim();
-  if (!date || !time || !count) return showToast('Please fill all fields','error');
+  const pulse = document.getElementById('bp-pulse').value.trim();
+  
+  if (!date || !time || !count) return showToast('Please fill required fields (Date, Time, BP)','error');
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return showToast('Date must be DD/MM/YYYY','error');
   if (!/^\d{2,3}\/\d{2,3}$/.test(count)) return showToast('Format must be 120/80','error');
+  
   const entries = getBPEntries(currentPatientId);
-  entries.push({ id:'bp_'+Date.now(), date, time, count });
+  entries.push({ id:'bp_'+Date.now(), date, time, count, pulse });
   saveBPEntries(currentPatientId, entries);
+  
   showToast('Reading saved ✅','success');
   initBPForm();
   renderBPEntries();
@@ -1996,6 +2138,7 @@ function renderBPEntries() {
       <div style="text-align:right;">
         <div style="font-size:18px;font-weight:700;color:var(--text-primary);">${e.count}</div>
         <div style="font-size:11px;color:var(--text-muted);">mmHg</div>
+        ${e.pulse ? `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-top:4px;">${e.pulse} <span style="font-size:10px;color:var(--text-muted);">BPM</span></div>` : ''}
       </div>
       <button class="btn btn-danger btn-sm btn-icon-sq" onclick="deleteBPEntry('${e.id}')" style="flex-shrink:0;">🗑️</button>
     </div>
@@ -2030,7 +2173,10 @@ function renderBPReport() {
   empty.style.display='none'; pdfBtn.style.display='block';
 
   const byDate = {};
-  entries.forEach(e => { if (!byDate[e.date]) byDate[e.date]={}; byDate[e.date][e.time] = e.count; });
+  entries.forEach(e => { 
+    if (!byDate[e.date]) byDate[e.date]={}; 
+    byDate[e.date][e.time] = { count: e.count, pulse: e.pulse }; 
+  });
   const sortedDates = Object.keys(byDate).sort((a,b) => parseDateSort(b).localeCompare(parseDateSort(a)));
 
   let html = `
@@ -2053,7 +2199,11 @@ function renderBPReport() {
           <tbody>
             <tr>
               <td style="border:1px solid #1A2340;padding:8px 8px;font-weight:700;text-align:center;background:#F8FAFF;white-space:nowrap;">${date}</td>
-              ${timesForDate.map(t=>`<td style="border:1px solid #1A2340;padding:8px 8px;text-align:center;font-weight:600;">${byDate[date][t]}</td>`).join('')}
+              ${timesForDate.map(t => {
+                  let d = byDate[date][t];
+                  let pulseStr = d.pulse ? `<br><span style="font-size:10px;color:var(--text-secondary);">${d.pulse} BPM</span>` : '';
+                  return `<td style="border:1px solid #1A2340;padding:8px 8px;text-align:center;font-weight:600;">${d.count}${pulseStr}</td>`;
+              }).join('')}
             </tr>
           </tbody>
         </table>
@@ -2083,7 +2233,7 @@ function downloadBPPDF() {
   const byDate = {};
   entries.forEach(e => {
     if (!byDate[e.date]) byDate[e.date] = {};
-    byDate[e.date][e.time] = e.count;
+    byDate[e.date][e.time] = { count: e.count, pulse: e.pulse };
   });
   const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a)));
 
@@ -2091,26 +2241,36 @@ function downloadBPPDF() {
   sortedDates.forEach(date => {
     if (y > 255) { doc.addPage(); y = 20; }
     const times = Object.keys(byDate[date]).sort();
-    const startX = 15; const dateColW = 40; const timeColW = 40; const rowH = 10;
+    const startX = 15; const dateColW = 40; const timeColW = 40; const rowH = 12;
 
     doc.setLineWidth(0.2); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(0,0,0);
-    doc.rect(startX,y,dateColW,rowH); doc.text(' ', startX + dateColW/2, y + 6, {align:'center'});
+    doc.rect(startX,y,dateColW,rowH); doc.text(' ', startX + dateColW/2, y + 7, {align:'center'});
     let x = startX + dateColW;
 
     times.forEach(t => {
-      doc.rect(x,y,timeColW,rowH); doc.text(t, x + timeColW/2, y + 6, {align:'center'});
+      doc.rect(x,y,timeColW,rowH); doc.text(t, x + timeColW/2, y + 7, {align:'center'});
       x += timeColW;
     });
 
     y += rowH; doc.setFont('helvetica','normal');
-    doc.rect(startX,y,dateColW,rowH); doc.text(date, startX + dateColW/2, y + 6, {align:'center'});
+    doc.rect(startX,y,dateColW,rowH); doc.text(date, startX + dateColW/2, y + 7, {align:'center'});
     x = startX + dateColW;
 
     times.forEach(t => {
-      doc.rect(x,y,timeColW,rowH); doc.text(String(byDate[date][t] +" mmHg" || '—'), x + timeColW/2, y + 6, {align:'center'});
+      doc.rect(x,y,timeColW,rowH);
+      let d = byDate[date][t];
+      if(d) {
+          if(d.pulse) {
+              doc.text([d.count + " mmHg", d.pulse + " BPM"], x + timeColW/2, y + 5, {align:'center'});
+          } else {
+              doc.text(d.count + " mmHg", x + timeColW/2, y + 7, {align:'center'});
+          }
+      } else {
+          doc.text('—', x + timeColW/2, y + 7, {align:'center'});
+      }
       x += timeColW;
     });
-    y += 14;
+    y += 16;
   });
 
   doc.save('BloodPressure_Report_' + todayDMY().replace(/\//g,'-') + '.pdf');
@@ -2125,7 +2285,7 @@ function copyBPText() {
   entries.forEach(e => { if (!byDate[e.date]) byDate[e.date]=[]; byDate[e.date].push(e); });
   Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a))).forEach(date => {
     text += date + '\n';
-    byDate[date].forEach(e => { text += '  '+e.time+' | '+e.count+' mmHg\n'; });
+    byDate[date].forEach(e => { text += '  '+e.time+' | '+e.count+' mmHg' + (e.pulse ? ' | '+e.pulse+' BPM' : '') + '\n'; });
     text += '\n';
   });
   navigator.clipboard.writeText(text).then(()=>showToast('Copied!','success')).catch(()=>showToast('Copy failed','error'));
@@ -2153,6 +2313,8 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 /* ── INIT ────────────────────────────────────────────────────────── */
 function init() {
   initTheme();
+  // Check auto-deduction continuously every minute
+  setInterval(runAutoDeduction, 60000);
 }
 init();
 </script>
