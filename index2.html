@@ -1,0 +1,2507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MEDISTOCK</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1976D2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<style>
+/* ── MEDISTOCK v2 – White Cards / Light Blue Header ────────────── */
+:root {
+  --hdr: #1976D2;         
+  --hdr-dark: #1565C0;
+  --accent: #1976D2;
+  --accent-soft: #E3F2FD;
+  --accent-mid: #BBDEFB;
+  --white: #ffffff;
+  --page-bg: #F0F4F8;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 12px rgba(25,118,210,0.10), 0 1px 4px rgba(0,0,0,0.07);
+  --card-shadow-hover: 0 6px 24px rgba(25,118,210,0.18), 0 2px 8px rgba(0,0,0,0.10);
+  --text-primary: #1A2340;
+  --text-secondary: #5B6780;
+  --text-muted: #9AA3B5;
+  --border: #E2E8F0;
+  --danger: #E53935;
+  --danger-soft: #FFEBEE;
+  --success: #2E7D32;
+  --success-soft: #E8F5E9;
+  --warning: #F57C00;
+  --warning-soft: #FFF3E0;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 7px;
+  --header-h: 62px;
+  --sidebar-w: 275px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--text-primary); -webkit-tap-highlight-color: transparent; }
+
+/* ── APP SHELL ──────────────────────────────────────────────────── */
+#app { width: 100%; height: 100vh; overflow: hidden; position: relative; }
+.page { position: absolute; inset: 0; overflow-y: auto; display: none; flex-direction: column; background: var(--page-bg); }
+.page.active { display: flex; }
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+.app-header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+  background: var(--hdr); display: flex; align-items: center;
+  padding: 0 16px; gap: 12px; z-index: 100;
+  box-shadow: 0 2px 8px rgba(21,101,192,0.25);
+}
+.app-header .logo-text { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 3px; color: #fff; flex: 1; }
+.app-header .logo-sub { font-size: 10px; color: rgba(255,255,255,0.75); letter-spacing: 1px; line-height: 1; display: block; margin-top: 1px; }
+.hamburger { width: 40px; height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; border-radius: var(--radius-xs); background: rgba(255,255,255,0.15); border: none; }
+.hamburger span { display: block; width: 18px; height: 2px; background: #fff; border-radius: 2px; }
+.hdr-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 17px; color: #fff; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────── */
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 199; display: none; }
+.sidebar-overlay.open { display: block; }
+.sidebar { position: fixed; top: 0; left: -300px; width: var(--sidebar-w); height: 100vh; background: #fff; z-index: 200; transition: left var(--transition); display: flex; flex-direction: column; border-right: 1px solid var(--border); box-shadow: 4px 0 24px rgba(25,118,210,0.12); overflow-y: auto; }
+.sidebar.open { left: 0; }
+.sidebar-hdr { background: var(--hdr); padding: 52px 20px 20px; }
+.sidebar-avatar { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px; border: 2px solid rgba(255,255,255,0.4); }
+.sidebar-name { font-size: 15px; font-weight: 600; color: #fff; }
+.sidebar-email { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+.sidebar-menu { padding: 8px 0; flex: 1; }
+.sidebar-item { display: flex; align-items: center; gap: 14px; padding: 14px 20px; cursor: pointer; transition: background var(--transition); color: var(--text-primary); font-size: 14px; font-weight: 500; }
+.sidebar-item:hover { background: var(--accent-soft); color: var(--accent); }
+.sidebar-item .si-icon { font-size: 20px; width: 26px; text-align: center; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+.sidebar-logout { display: flex; align-items: center; gap: 14px; padding: 10px 0; cursor: pointer; color: var(--danger); font-size: 14px; font-weight: 500; }
+.sidebar-sep { height: 1px; background: var(--border); margin: 4px 16px; }
+
+/* ── MAIN CONTENT ────────────────────────────────────────────────── */
+.main-content { padding-top: calc(var(--header-h) + 16px); padding-bottom: 84px; flex: 1; overflow-y: auto; }
+.card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); overflow: hidden; }
+
+/* ── AUTH ────────────────────────────────────────────────────────── */
+.auth-page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(160deg, #1565C0 0%, #1E88E5 45%, #E3F2FD 100%); }
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo-icon { width: 76px; height: 76px; background: #fff; border-radius: 22px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 36px; box-shadow: 0 8px 28px rgba(0,0,0,0.18); }
+.auth-logo h1 { font-family: 'Rajdhani', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: 5px; color: #fff; }
+.auth-logo p { font-size: 11px; color: rgba(255,255,255,0.8); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+.auth-card { background: #fff; border-radius: 20px; padding: 28px 22px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(21,101,192,0.25); }
+.auth-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 22px; color: var(--text-primary); }
+.auth-tabs { display: flex; background: var(--page-bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 22px; gap: 4px; }
+.auth-tab { flex: 1; padding: 9px; text-align: center; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: all var(--transition); }
+.auth-tab.active { background: var(--hdr); color: #fff; box-shadow: 0 2px 8px rgba(25,118,210,0.35); }
+.auth-link { text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+.auth-link a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.auth-divider { text-align:center; margin: 16px 0; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+
+/* ── FORM ELEMENTS ───────────────────────────────────────────────── */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.6px; text-transform: uppercase; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--page-bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: all var(--transition); -webkit-appearance: none; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(25,118,210,0.10); }
+
+/* ── BUTTONS ─────────────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 20px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; transition: all var(--transition); }
+.btn-primary { background: var(--hdr); color: #fff; width: 100%; box-shadow: 0 4px 14px rgba(25,118,210,0.35); }
+.btn-primary:hover { background: var(--hdr-dark); box-shadow: 0 6px 20px rgba(25,118,210,0.45); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-outline { background: #fff; color: var(--accent); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: var(--accent); background: var(--accent-soft); }
+.btn-danger { background: var(--danger-soft); color: var(--danger); border: 1.5px solid #FFCDD2; }
+.btn-success { background: var(--success-soft); color: var(--success); border: 1.5px solid #C8E6C9; }
+.btn-sm { padding: 7px 13px; font-size: 12px; }
+.btn-icon-sq { width: 36px; height: 36px; padding: 0; border-radius: var(--radius-xs); flex-shrink: 0; }
+
+/* ── PATIENT BAR ─────────────────────────────────────────────────── */
+.patient-bar { padding: 12px 16px 8px; }
+.patient-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+.patient-select-row { display: flex; gap: 9px; align-items: center; }
+.patient-select-row select { flex: 1; appearance: none; -webkit-appearance: none; background: #fff; border: 2px solid #E3F2FD; border-radius: 14px; padding: 12px 45px 12px 14px; font-size: 14px; font-weight: 600; color: #1A2340; box-shadow: 0 3px 12px rgba(25,118,210,0.08); transition: all 0.25s ease; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%231976D2' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 5.646a.5.5 0 0 1 .708 0L8 11.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; }
+.patient-select-row select:focus { border-color: #1976D2; box-shadow: 0 0 0 4px rgba(25,118,210,0.15); outline: none; }
+.patient-select-row select:hover { border-color: #90CAF9; transform: translateY(-1px); }
+.patient-select-row .btn-new { flex-shrink: 0; border: none; outline: none; cursor: pointer; background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%); color: white; font-size: 14px; font-weight: 700; padding: 12px 18px; border-radius: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(25,118,210,0.25), 0 8px 24px rgba(25,118,210,0.15); transition: all .25s ease; }
+.patient-select-row .btn-new:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(25,118,210,0.35), 0 12px 30px rgba(25,118,210,0.20); }
+
+/* ── WELCOME BANNER ──────────────────────────────────────────────── */
+.welcome-banner { margin: 12px 16px; background: linear-gradient(135deg, var(--hdr) 0%, #1E88E5 100%); border-radius: var(--radius); padding: 20px; color: #fff; box-shadow: 0 4px 16px rgba(25,118,210,0.3); }
+.welcome-banner h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.welcome-banner p { font-size: 13px; opacity: 0.85; }
+
+/* ── DASHBOARD GRID ──────────────────────────────────────────────── */
+.dashboard-section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; padding: 8px 16px 10px; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px 16px; }
+.dash-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); padding: 20px 12px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all var(--transition); min-height: 118px; position: relative; overflow: hidden; }
+.dash-card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); border-color: var(--accent-mid); }
+.dash-card .card-icon-wrap { width: 54px; height: 54px; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 26px; flex-shrink: 0; }
+.dash-card .card-label { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.35; letter-spacing: 0.1px; }
+.dash-card .card-count { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.ic-blue { background: #E3F2FD; } .ic-green { background: #E8F5E9; } .ic-orange { background: #FFF3E0; } .ic-red { background: #FFEBEE; } .ic-purple { background: #F3E5F5; } .ic-teal { background: #E0F2F1; } .ic-indigo { background: #E8EAF6; }
+
+/* ── MED LIST / CARDS ────────────────────────────────────────────── */
+.med-list { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.med-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow); padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all var(--transition); }
+.med-card:hover { box-shadow: var(--card-shadow-hover); border-color: var(--accent-mid); }
+.med-thumb { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; overflow: hidden; }
+.med-info { flex: 1; min-width: 0; }
+.med-name { font-size: 14px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.med-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.med-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+.badge-low { background: var(--danger-soft); color: var(--danger); border: 1px solid #FFCDD2; }
+
+/* ── SEARCH BAR ──────────────────────────────────────────────────── */
+.search-wrap { padding: 0 16px 12px; }
+.search-input { width: 100%; background: #fff; border: 1.5px solid var(--border); border-radius: 30px; padding: 10px 16px 10px 42px; color: var(--text-primary); font-size: 13px; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B6780' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 14px center; background-size: 16px; box-shadow: var(--card-shadow); }
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(25,118,210,0.10); }
+
+/* ── SECTION HEADER ──────────────────────────────────────────────── */
+.section-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 8px; }
+.section-hdr-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: #fff; font-size: 14px; font-weight: 600; padding: 0; }
+
+/* ── REPORT TABLE ────────────────────────────────────────────────── */
+.report-wrapper { background: #fff; border-radius: var(--radius); margin: 0 16px 16px; padding: 20px 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
+.report-heading { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; text-align: center; letter-spacing: 2px; text-decoration: underline; text-underline-offset: 4px; margin-bottom: 6px; color: var(--text-primary); }
+.report-sub { font-size: 12px; text-align: center; color: var(--text-secondary); margin-bottom: 14px; }
+.report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.report-table th { background: var(--hdr); color: #fff; padding: 9px 8px; text-align: left; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
+.report-table th:first-child { border-radius: 6px 0 0 0; }
+.report-table th:last-child { border-radius: 0 6px 0 0; }
+.report-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 13px; white-space: pre-line; word-break: break-word; }
+.report-table tr:nth-child(even) td { background: #F8FAFF; }
+.report-table tr.low-stock td { color: var(--danger); background: #FFF8F8; }
+
+/* ── DETAIL PAGE ─────────────────────────────────────────────────── */
+.detail-info-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); margin: 12px 16px 0; overflow: hidden; }
+.detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.detail-row:last-child { border-bottom: none; }
+.detail-lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.detail-val { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: right; max-width: 60%; }
+
+/* ── STOCK OUT ───────────────────────────────────────────────────── */
+.manage-info-card { background: var(--accent-soft); border: 1.5px solid var(--accent-mid); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; }
+.manage-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.manage-stat { background: #fff; border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.manage-stat-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.manage-stat-val { font-size: 24px; font-weight: 700; margin-top: 4px; }
+
+/* ── ORDER LIST ──────────────────────────────────────────────────── */
+.order-entries { padding: 0 16px 80px; display: flex; flex-direction: column; gap: 8px; }
+.order-entry { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 10px; box-shadow: var(--card-shadow); }
+.order-entry .oe-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.order-entry .oe-qty { font-size: 13px; color: var(--accent); font-weight: 700; background: var(--accent-soft); padding: 4px 12px; border-radius: 20px; }
+
+/* ── FAB ─────────────────────────────────────────────────────────── */
+.fab { position: fixed; bottom: 26px; right: 18px; width: 54px; height: 54px; border-radius: 16px; background: var(--hdr); border: none; color: #fff; font-size: 24px; cursor: pointer; box-shadow: 0 6px 20px rgba(25,118,210,0.45); z-index: 50; display: flex; align-items: center; justify-content: center; transition: all var(--transition); }
+.fab:hover { transform: scale(1.07); box-shadow: 0 8px 28px rgba(25,118,210,0.55); }
+.fab-label { position: fixed; bottom: 34px; right: 78px; background: var(--hdr-dark); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 50; white-space: nowrap; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+
+/* ── INVOICE CARD ────────────────────────────────────────────────── */
+.invoice-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow); padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all var(--transition); }
+.inv-num { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+.inv-date { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── SETTINGS ────────────────────────────────────────────────────── */
+.settings-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); margin: 0 16px 14px; overflow: hidden; }
+.settings-card-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.settings-card-header h3 { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.setting-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.setting-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── PROFILE ─────────────────────────────────────────────────────── */
+.profile-hero { background: linear-gradient(135deg, var(--hdr) 0%, #1E88E5 100%); padding: 32px 20px 24px; text-align: center; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.25); display: inline-flex; align-items: center; justify-content: center; font-size: 36px; border: 3px solid rgba(255,255,255,0.5); margin-bottom: 10px; }
+.profile-hero-name { font-size: 18px; font-weight: 700; color: #fff; }
+.profile-hero-sub { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 3px; }
+
+/* ── MODAL ───────────────────────────────────────────────────────── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: flex-end; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: #fff; border-radius: 20px 20px 0 0; padding: 24px 20px; width: 100%; animation: slideUp 0.28s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; color: var(--text-primary); }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.modal-actions .btn { flex: 1; }
+
+/* ── TOAST ───────────────────────────────────────────────────────── */
+#toast-container { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: calc(100% - 32px); max-width: 340px; }
+.toast { background: #1A2340; border-radius: var(--radius-sm); padding: 11px 16px; color: #fff; font-size: 13px; font-weight: 500; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: toastIn 0.3s ease; display: flex; align-items: center; gap: 8px; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+.toast.success { background: #2E7D32; }
+.toast.error { background: var(--danger); }
+.toast.warning { background: var(--warning); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 44px 24px; }
+.empty-icon { font-size: 52px; margin-bottom: 12px; opacity: 0.6; }
+.empty-title { font-size: 15px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; color: var(--text-muted); }
+
+/* ── LOW STOCK ROW ───────────────────────────────────────────────── */
+.low-med-card { background: #fff; border: 1.5px solid #FFCDD2; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(229,57,53,0.10); padding: 14px; display: flex; align-items: center; gap: 12px; margin: 0 16px 10px; }
+.low-alert-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--danger-soft); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+
+/* ── FORM PAGE ───────────────────────────────────────────────────── */
+.form-page { padding: 16px; }
+.form-section-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.chip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--accent-mid); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ================================================================
+     AUTH PAGE
+     ================================================================ -->
+<div class="page active" id="page-auth">
+  <div class="auth-page">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💊</div>
+      <h1>MEDISTOCK</h1>
+      <p>Medical Inventory Management</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+      </div>
+
+      <div id="form-login">
+        <div class="form-group"><label>Email Address</label><input type="email" id="login-email" placeholder="Enter your email address"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-pass" placeholder="Enter your password"></div>
+        <button class="btn btn-primary" onclick="doLogin()">Sign In →</button>
+        
+        <div class="auth-divider">OR</div>
+        <button class="btn btn-outline" style="width:100%;" onclick="doGoogleLogin()">🌐 Continue with Google</button>
+
+        <div class="auth-link" style="margin-top:16px;"><a onclick="showPage('page-forgot')">Forgot password?</a></div>
+      </div>
+
+      <div id="form-register" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Enter full name"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="Enter email address"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"></div>
+        <button class="btn btn-primary" onclick="doRegister()">Create Account →</button>
+        
+        <div class="auth-divider">OR</div>
+        <button class="btn btn-outline" style="width:100%;" onclick="doGoogleLogin()">🌐 Continue with Google</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     FORGOT PASSWORD
+     ================================================================ -->
+<div class="page" id="page-forgot">
+  <div class="auth-page">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🔑</div>
+      <h1>MEDISTOCK</h1>
+      <p>Reset Password</p>
+    </div>
+    <div class="auth-card">
+      <div id="forgot-step1">
+        <h2>Forgot Password</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Enter your registered email address to receive a secure password reset link.</p>
+        <div class="form-group"><label>Email Address</label><input type="email" id="forgot-email" placeholder="Registered email"></div>
+        <button class="btn btn-primary" onclick="sendResetLink()">Send Reset Link</button>
+      </div>
+      <div class="auth-link" style="margin-top:12px;"><a onclick="showPage('page-auth');switchAuthTab('login');">← Back to Login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     HOME PAGE
+     ================================================================ -->
+<div class="page" id="page-home">
+  <!-- Header -->
+  <div class="app-header">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <div>
+      <div class="logo-text">MEDISTOCK</div>
+      <span class="logo-sub">Medical Inventory</span>
+    </div>
+    <div style="flex:1;"></div>
+    <button class="hdr-btn" onclick="toggleTheme()" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-hdr">
+      <div class="sidebar-avatar">👤</div>
+      <div class="sidebar-name" id="sidebar-name">User</div>
+      <div class="sidebar-email" id="sidebar-email">—</div>
+    </div>
+    <div class="sidebar-menu">
+      <div class="sidebar-item" onclick="showSubPage('profile');closeSidebar()">
+        <span class="si-icon">✏️</span> Edit Profile
+      </div>
+      <div class="sidebar-sep"></div>
+      <div class="sidebar-item" onclick="showSubPage('settings');closeSidebar()">
+        <span class="si-icon">⚙️</span> Settings
+      </div>
+      <div class="sidebar-sep"></div>
+      <div class="sidebar-item" onclick="showSubPage('backup');closeSidebar()">
+        <span class="si-icon">💾</span> Backup & Restore
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-logout" onclick="doLogout()">
+        <span class="si-icon" style="font-size:18px;">🚪</span> Logout
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Welcome -->
+    <div class="welcome-banner" id="welcome-banner" style="display:none">
+      <h2 id="welcome-text">Good day! 👋</h2>
+      <p>Manage your medicines and stock easily.</p>
+    </div>
+
+    <!-- Patient Selection -->
+    <div class="patient-bar">
+      <div class="patient-label">Patient</div>
+      <div class="patient-select-row">
+        <select id="patient-select" onchange="onPatientChange()">
+          <option value="">— Select a patient —</option>
+        </select>
+        <button class="btn-new" onclick="showAddPatientModal()">+ New</button>
+      </div>
+    </div>
+
+    <!-- No Patient State -->
+    <div id="no-patient-msg" class="empty-state">
+      <div class="empty-icon">🏥</div>
+      <div class="empty-title">Welcome to MEDISTOCK</div>
+      <div class="empty-sub">Select or create a patient profile to start managing medicine stock.</div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="patient-dashboard" style="display:none">
+      <div id="selected-patient-chip" style="padding:4px 16px 10px;"></div>
+      <div class="dashboard-section-title">Quick Actions</div>
+      <div class="dashboard-grid">
+        <div class="dash-card" onclick="showModule('stock-report')">
+          <div class="card-icon-wrap ic-blue">📊</div>
+          <div class="card-label">Stock Report</div>
+          <div class="card-count" id="tile-count-report">View all stock</div>
+        </div>
+        <div class="dash-card" onclick="showModule('add-stock')">
+          <div class="card-icon-wrap ic-green">➕</div>
+          <div class="card-label">Add To Stock</div>
+          <div class="card-count">New medicine</div>
+        </div>
+        <div class="dash-card" onclick="showModule('view-stock')">
+          <div class="card-icon-wrap ic-indigo">💊</div>
+          <div class="card-label">View All Stock</div>
+          <div class="card-count" id="tile-count-stock">0 medicines</div>
+        </div>
+        <div class="dash-card" onclick="showModule('stock-out')">
+          <div class="card-icon-wrap ic-orange">📤</div>
+          <div class="card-label">Stock Out</div>
+          <div class="card-count">Use medicines</div>
+        </div>
+        <div class="dash-card" onclick="showModule('order-list')">
+          <div class="card-icon-wrap ic-teal">📋</div>
+          <div class="card-label">Create Order List</div>
+          <div class="card-count">New order</div>
+        </div>
+        <div class="dash-card" onclick="showModule('order-invoice')">
+          <div class="card-icon-wrap ic-purple">🧾</div>
+          <div class="card-label">Order Invoice</div>
+          <div class="card-count" id="tile-count-inv">0 invoices</div>
+        </div>
+        <div class="dash-card" onclick="showModule('low-stock')" id="tile-low-stock">
+          <div class="card-icon-wrap ic-red">⚠️</div>
+          <div class="card-label">Stock Predictions</div>
+          <div class="card-count" id="tile-count-low">Check now</div>
+        </div>
+        <div class="dash-card" onclick="showModule('calculator')">
+          <div class="card-icon-wrap" style="background:#E0F7FA;">🧮</div>
+          <div class="card-label">Calculator</div>
+          <div class="card-count" id="tile-count-calc">Calculate Cost</div>
+        </div>
+      </div>
+
+      <div class="dashboard-section-title" style="margin-top:4px;">Health Monitoring</div>
+      <div class="dashboard-grid">
+        <div class="dash-card" onclick="showModule('bs-level')">
+          <div class="card-icon-wrap" style="background:#FFF8E1;">🩸</div>
+          <div class="card-label">Blood Sugar Level</div>
+          <div class="card-count" id="tile-count-bs">Log reading</div>
+        </div>
+        <div class="dash-card" onclick="showModule('bs-report')">
+          <div class="card-icon-wrap" style="background:#FCE4EC;">📈</div>
+          <div class="card-label">Blood Sugar Report</div>
+          <div class="card-count">View report</div>
+        </div>
+        <div class="dash-card" onclick="showModule('bp-level')">
+          <div class="card-icon-wrap" style="background:#E8F5E9;">❤️</div>
+          <div class="card-label">Blood Pressure Level</div>
+          <div class="card-count" id="tile-count-bp">Log reading</div>
+        </div>
+        <div class="dash-card" onclick="showModule('bp-report')">
+          <div class="card-icon-wrap" style="background:#EDE7F6;">📋</div>
+          <div class="card-label">Blood Pressure Report</div>
+          <div class="card-count">View report</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-PAGES ─────────────────────────────────────────────── -->
+
+    <!-- PROFILE -->
+    <div id="sub-profile" style="display:none">
+      <div class="profile-hero">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-hero-name" id="prof-disp-name">User</div>
+        <div class="profile-hero-sub" id="prof-disp-email">—</div>
+      </div>
+      <div style="padding:16px;">
+        <button class="back-btn" onclick="hideSubPage()" style="color:var(--text-secondary);margin-bottom:12px;">← Back</button>
+        <div class="form-group"><label>Full Name</label><input type="text" id="prof-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="prof-email" readonly style="opacity:0.7;" title="Email cannot be changed directly here"></div>
+        <button class="btn btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="sub-settings" style="display:none">
+      <div class="section-hdr">
+        <div class="section-hdr-title">Settings</div>
+        <button class="back-btn" onclick="hideSubPage()" style="color:var(--accent);">← Back</button>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-header"><h3>Appearance</h3></div>
+        <div class="setting-row">
+          <div><div class="setting-label">Theme Mode</div><div class="setting-sub">Toggle light / dark</div></div>
+          <button class="btn-outline btn btn-sm" onclick="toggleTheme()" id="theme-toggle-settings">🌙 Dark</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKUP -->
+    <div id="sub-backup" style="display:none">
+      <div class="section-hdr">
+        <div class="section-hdr-title">Backup & Restore</div>
+        <button class="back-btn" onclick="hideSubPage()" style="color:var(--accent);">← Back</button>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-header"><h3>Export Backup</h3></div>
+        <div style="padding:14px 16px;">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Download all your data as a JSON backup file.</p>
+          <button class="btn btn-success" style="width:100%;" onclick="exportBackup()">📥 Export Backup</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-header"><h3>Restore Backup</h3></div>
+        <div style="padding:14px 16px;">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Restore from a previously exported JSON file.</p>
+          <input type="file" id="restore-file" accept=".json" style="display:none" onchange="importBackup(event)">
+          <button class="btn btn-outline" style="width:100%;" onclick="document.getElementById('restore-file').click()">📤 Restore Backup</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+</div><!-- end page-home -->
+
+<!-- ================================================================
+     ADD TO STOCK
+     ================================================================ -->
+<div class="page" id="page-add-stock">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Add To Stock</div>
+  </div>
+  <div class="main-content form-page">
+    <div class="form-section-title">Medicine Details</div>
+    <div class="form-group"><label>Medicine Name *</label><textarea type="text" id="med-name" placeholder="e.g. Paracetamol 500mg" autocomplete="off" autocorrect="off" spellcheck="false"></textarea></div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Stock Quantity *</label><input type="number" id="med-qty" placeholder="e.g. 100" min="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+      <div class="form-group"><label>Price (₹)</label><input type="number" id="med-price" placeholder="50.00" step="0.01" min="0"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group">
+        <label>Packed Type</label>
+        <select id ="med-packed">
+          <option>Tab</option>
+          <option>Sachet</option>
+          <option>Capsule</option>
+          <option>Ointment</option>
+          <option>Liquid</option>
+          <option>Ampule</option>
+          <option>Lancet</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Packed Quantity</label><input type="number" id="med-packed-qty" placeholder="e.g. 10" min="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+    </div>
+
+    <!-- NEW DOSAGE COMPONENT -->
+    <div class="form-section-title">Dosage Setup (Auto Deduct)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Morning (9:00 AM)</label><input type="number" id="dose-morning" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Noon (1:00 PM)</label><input type="number" id="dose-noon" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Evening (4:00 PM)</label><input type="number" id="dose-evening" placeholder="Qty" min="0"></div>
+      <div class="form-group"><label>Night (10:00 PM)</label><input type="number" id="dose-night" placeholder="Qty" min="0"></div>
+    </div>
+
+    <div class="form-section-title">Supplier Details</div>
+    <div class="form-group"><label>Manufacturer</label><input type="text" id="med-mfr" placeholder="e.g. Sun Pharma"></div>
+    <div class="form-group"><label>Distributor</label><input type="text" id="med-dist" placeholder="e.g. MedPro Distributors"></div>
+    <button class="btn btn-primary" onclick="saveMedicine()">💾 Save Medicine</button>
+    <input type="hidden" id="editing-med-id">
+  </div>
+</div>
+
+<!-- ================================================================
+     VIEW ALL STOCK
+     ================================================================ -->
+<div class="page" id="page-view-stock">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">All Stock</div>
+  </div>
+  <div class="main-content">
+    <div style="height:12px;"></div>
+    <div class="search-wrap"><input class="search-input" type="text" id="stock-search" placeholder="Search medicines…" oninput="renderViewStock()"></div>
+    <div id="view-stock-list" class="med-list"></div>
+    <div id="view-stock-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">💊</div>
+      <div class="empty-title">No medicines found</div>
+      <div class="empty-sub">Add some stock first using "Add To Stock".</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MEDICINE DETAIL
+     ================================================================ -->
+<div class="page" id="page-med-detail">
+  <div class="app-header">
+    <button class="back-btn" onclick="showPage('page-view-stock')">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;" id="detail-page-title">Detail</div>
+  </div>
+  <div class="main-content" style="padding-top:calc(var(--header-h)+14px);">
+    <div class="detail-info-card" id="detail-info"></div>
+    <div style="padding:12px 16px 0;display:flex;gap:10px;">
+      <button class="btn btn-outline" style="flex:1;" id="detail-edit-btn">✏️ Edit</button>
+      <button class="btn btn-danger" style="flex:1;" id="detail-delete-btn">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     STOCK REPORT
+     ================================================================ -->
+<div class="page" id="page-stock-report">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Stock Report</div>
+    <div style="flex:1;"></div>
+    <button class="hdr-btn" style="font-size:14px;width:auto;padding:0 12px;border-radius:8px;" onclick="shareReport()">📤 Share</button>
+  </div>
+  <div class="main-content" style="padding-top:calc(var(--header-h)+16px);padding-bottom:80px;">
+    <div class="report-wrapper" id="stock-report-content">
+      <div class="report-heading">MEDICINE STOCK LIST</div>
+      <div class="report-sub" id="report-patient-sub"></div>
+      <table class="report-table">
+        <thead><tr><th>SL</th><th>Medicine Name</th><th>Qty</th><th>Price (₹)</th></tr></thead>
+        <tbody id="stock-report-body"></tbody>
+      </table>
+    </div>
+    <div style="padding:0 16px;">
+      <button class="btn btn-primary" onclick="generatePDF('stock')">📄 Generate & Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     STOCK OUT
+     ================================================================ -->
+<div class="page" id="page-stock-out">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Stock Out</div>
+  </div>
+  <div class="main-content">
+    <div style="height:12px;"></div>
+    <div class="search-wrap"><input class="search-input" type="text" id="stockout-search" placeholder="Search medicines…" oninput="renderStockOut()"></div>
+    <div id="stock-out-list" class="med-list"></div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MANAGE STOCK
+     ================================================================ -->
+<div class="page" id="page-manage-stock">
+  <div class="app-header">
+    <button class="back-btn" onclick="showPage('page-stock-out')">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Manage Stock</div>
+  </div>
+  <div class="main-content form-page">
+    <div class="manage-info-card" id="manage-stock-info"></div>
+    <div class="form-group"><label>Enter Quantity Used *</label><input type="number" id="qty-used" placeholder="Enter quantity to deduct" min="1"></div>
+    <button class="btn btn-primary" onclick="submitStockOut()">✅ Submit Stock Out</button>
+    <input type="hidden" id="manage-med-id">
+  </div>
+</div>
+
+<!-- ================================================================
+     ORDER LIST
+     ================================================================ -->
+<div class="page" id="page-order-list">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Create Order List</div>
+  </div>
+  <div class="main-content">
+    <div class="form-page" style="padding-bottom:8px;">
+      <div class="form-group"><label>Select Medicine</label><select id="order-med-select"><option value="">— Select medicine —</option></select></div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="order-qty" placeholder="Enter quantity needed" min="1"></div>
+      <button class="btn btn-primary" onclick="addOrderEntry()" style="margin-bottom:0;">+ Add to List</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px 4px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Order Entries</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="saveOrderDraft()" style="padding:4px 8px; font-size:11px; color:var(--accent); border-color:var(--accent);">💾 Save Draft</button>
+        <button class="btn btn-outline btn-sm" onclick="clearOrderList()" style="padding:4px 8px; font-size:11px; color:var(--danger); border-color:var(--danger);">🗑️ Clear List</button>
+      </div>
+    </div>
+    <div class="order-entries" id="order-entries-list"></div>
+    <div id="order-empty" class="empty-state" style="display:none;padding:20px 24px;">
+      <div class="empty-sub">No entries yet. Add medicines above.</div>
+    </div>
+    <div id="fab-generate" style="display:none">
+      <div class="fab-label">Generate List</div>
+      <button class="fab" onclick="generateOrderList()">📋</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     ORDER INVOICE LIST
+     ================================================================ -->
+<div class="page" id="page-order-invoice">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Order Invoices</div>
+  </div>
+  <div class="main-content">
+    <div style="height:12px;"></div>
+    <div id="invoice-list" class="med-list"></div>
+    <div id="invoice-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-title">No invoices yet</div>
+      <div class="empty-sub">Generate an order list first to create invoices.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     INVOICE DETAIL
+     ================================================================ -->
+<div class="page" id="page-invoice-detail">
+  <div class="app-header">
+    <button class="back-btn" onclick="showPage('page-order-invoice')">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Invoice</div>
+    <div style="flex:1;"></div>
+    <button class="hdr-btn" style="font-size:14px;width:auto;padding:0 12px;border-radius:8px;" onclick="shareInvoice()">📤 Share</button>
+  </div>
+  <div class="main-content" style="padding-top:calc(var(--header-h)+16px);padding-bottom:80px;">
+    <div class="report-wrapper" id="invoice-detail-content">
+      <div class="report-heading">MEDICINE ORDER LIST</div>
+      <div id="invoice-meta" style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);"></div>
+      <table class="report-table">
+        <thead><tr><th>SL</th><th>Medicine Name</th><th>Quantity</th></tr></thead>
+        <tbody id="invoice-detail-body"></tbody>
+      </table>
+    </div>
+    <div style="padding:0 16px;">
+      <button class="btn btn-primary" onclick="generatePDF('invoice')">📄 Generate & Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     CALCULATOR
+     ================================================================ -->
+<div class="page" id="page-calculator">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Calculator</div>
+  </div>
+  <div class="main-content" style="padding-bottom:80px;">
+    <div class="form-page" style="padding-bottom:8px;">
+      <div class="form-group"><label>Select Medicine</label><select id="calc-med-select"><option value="">— Select medicine —</option></select></div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="calc-qty" placeholder="Enter quantity" min="1"></div>
+      <button class="btn btn-primary" onclick="addCalcEntry()" style="margin-bottom:0;">+ Add to Calc</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px 4px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Calculation Items</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="saveCalculatorDraft()" style="padding:4px 8px; font-size:11px; color:var(--accent); border-color:var(--accent);">💾 Save Draft</button>
+        <button class="btn btn-outline btn-sm" onclick="clearCalcList()" style="padding:4px 8px; font-size:11px; color:var(--danger); border-color:var(--danger);">🗑️ Clear List</button>
+      </div>
+    </div>
+    <div class="order-entries" id="calc-entries-list"></div>
+    <div id="calc-empty" class="empty-state" style="display:none;padding:20px 24px;">
+      <div class="empty-sub">No items yet. Add medicines above.</div>
+    </div>
+    
+    <div id="calc-total-bar" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); padding:16px; box-shadow:0 -4px 12px rgba(0,0,0,0.05); z-index:10;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:18px; font-weight:700;">
+        <span>Grand Total:</span>
+        <span style="color:var(--accent);" id="calc-grand-total">₹0.00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     LOW STOCK ALERT
+     ================================================================ -->
+<div class="page" id="page-low-stock">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Stock Predictions</div>
+  </div>
+  <div class="main-content">
+    <div style="height:12px;"></div>
+    <div id="low-stock-list"></div>
+    <div id="low-stock-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title" style="color:var(--success);">Healthy Stock Levels!</div>
+      <div class="empty-sub">No medicines are running out soon.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODALS
+     ================================================================ -->
+<div class="modal-overlay" id="modal-add-patient">
+  <div class="modal-box">
+    <div class="modal-title">👤 Add New Patient</div>
+    <div class="form-group"><label>Patient Name *</label><input type="text" id="new-patient-name" placeholder="Enter patient name"></div>
+    <div class="form-group"><label>Age</label><input type="number" id="new-patient-age" placeholder="Age" min="0" max="120"></div>
+    <div class="form-group"><label>Notes (Optional)</label><input type="text" id="new-patient-notes" placeholder="Any notes"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-patient')">Cancel</button>
+      <button class="btn btn-primary" onclick="addPatient()">Add Patient</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ Confirm Delete</div>
+    <p style="font-size:14px;color:var(--text-secondary);" id="confirm-msg">Are you sure you want to delete this item?</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm')">Cancel</button>
+      <button class="btn btn-danger" id="confirm-yes-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-share">
+  <div class="modal-box">
+    <div class="modal-title">📤 Share / Export</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Download as PDF and share via WhatsApp, Gmail, or any app.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary" onclick="downloadPDF()">📥 Download PDF</button>
+      <button class="btn btn-outline" onclick="copyReportText()">📋 Copy as Text</button>
+    </div>
+    <button class="btn btn-outline" style="margin-top:10px;width:100%;" onclick="closeModal('modal-share')">Close</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     BLOOD SUGAR LEVEL
+     ================================================================ -->
+<div class="page" id="page-bs-level">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Blood Sugar Level</div>
+  </div>
+  <div class="main-content form-page" style="padding-bottom:100px;">
+    <div class="form-section-title">New Entry</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="bs-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="autoSlashDate(this)"></div>
+      <div class="form-group"><label>Time</label><input type="TEXT" id="bs-time"></div>
+    </div>
+    <div class="form-group"><label>Reading Type</label>
+      <select id="bs-type">
+        <option value="">— Select type —</option>
+        <option value="Before Breakfast">Before Breakfast (FBS)</option>
+        <option value="After Breakfast">After Breakfast (PPBS)</option>
+        <option value="Before Lunch">Before Lunch</option>
+        <option value="Before Dinner">Before Dinner</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Blood Sugar Count</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="bs-count" placeholder="e.g. 120" min="0" max="999" style="flex:1;">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:11px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);white-space:nowrap;">mg/dL</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveBSEntry()">💾 Save Entry</button>
+
+    <div class="form-section-title" style="margin-top:20px;">Saved Readings</div>
+    <div id="bs-entries-list"></div>
+    <div id="bs-entries-empty" class="empty-state" style="display:none;padding:20px 0;">
+      <div class="empty-icon" style="font-size:36px;">🩸</div>
+      <div class="empty-sub">No entries yet. Save a reading above.</div>
+    </div>
+  </div>
+  <!-- Floating Reset Button -->
+  <button class="fab" style="bottom:26px;right:18px;background:#E53935;box-shadow:0 6px 20px rgba(229,57,53,0.4);" onclick="openModal('modal-bs-reset')" title="Reset all readings">🗑️</button>
+</div>
+
+<!-- ================================================================
+     BLOOD SUGAR REPORT
+     ================================================================ -->
+<div class="page" id="page-bs-report">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Blood Sugar Report</div>
+    <div style="flex:1;"></div>
+    <button class="hdr-btn" style="font-size:14px;width:auto;padding:0 12px;border-radius:8px;" onclick="openModal('modal-bs-share')">📤 Share</button>
+  </div>
+  <div class="main-content" style="padding-top:calc(var(--header-h)+16px);padding-bottom:80px;">
+    <div id="bs-report-content" style="margin:0 16px 16px;"></div>
+    <div id="bs-report-empty" class="empty-state" style="display:none;">
+      <div class="empty-icon">📈</div>
+      <div class="empty-title">No data yet</div>
+      <div class="empty-sub">Save blood sugar readings first.</div>
+    </div>
+    <div style="padding:0 16px;" id="bs-pdf-btn-wrap" style="display:none;">
+      <button class="btn btn-primary" onclick="downloadBSPDF()">📄 Generate & Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     BLOOD PRESSURE LEVEL
+     ================================================================ -->
+<div class="page" id="page-bp-level">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Blood Pressure Level</div>
+  </div>
+  <div class="main-content form-page" style="padding-bottom:100px;">
+    <div class="form-section-title">New Entry</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="bp-date" placeholder="DD/MM/YYYY" maxlength="10" oninput="autoSlashDate(this)"></div>
+      <div class="form-group"><label>Time</label><input type="text" id="bp-time"></div>
+    </div>
+    
+    <div class="form-group">
+      <label>Blood Pressure</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="bp-count" placeholder="e.g. 120/80" style="flex:1;" maxlength="10">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:11px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);white-space:nowrap;">mmHg</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Format: Systolic/Diastolic e.g. 120/80</div>
+    </div>
+
+    <!-- NEW PULSE FIELD -->
+    <div class="form-group">
+      <label>Pulse (Optional)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="bp-pulse" placeholder="e.g. 72" style="flex:1;" min="0" max="300">
+        <span style="font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:11px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);white-space:nowrap;">BPM</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveBPEntry()">💾 Save Entry</button>
+
+    <div class="form-section-title" style="margin-top:20px;">Saved Readings</div>
+    <div id="bp-entries-list"></div>
+    <div id="bp-entries-empty" class="empty-state" style="display:none;padding:20px 0;">
+      <div class="empty-icon" style="font-size:36px;">❤️</div>
+      <div class="empty-sub">No entries yet. Save a reading above.</div>
+    </div>
+  </div>
+  <!-- Floating Reset Button -->
+  <button class="fab" style="bottom:26px;right:18px;background:#E53935;box-shadow:0 6px 20px rgba(229,57,53,0.4);" onclick="openModal('modal-bp-reset')" title="Reset all readings">🗑️</button>
+</div>
+
+<!-- ================================================================
+     BLOOD PRESSURE REPORT
+     ================================================================ -->
+<div class="page" id="page-bp-report">
+  <div class="app-header">
+    <button class="back-btn" onclick="backToHome()">← Back</button>
+    <div class="logo-text" style="font-size:17px;letter-spacing:1px;">Blood Pressure Report</div>
+    <div style="flex:1;"></div>
+    <button class="hdr-btn" style="font-size:14px;width:auto;padding:0 12px;border-radius:8px;" onclick="openModal('modal-bp-share')">📤 Share</button>
+  </div>
+  <div class="main-content" style="padding-top:calc(var(--header-h)+16px);padding-bottom:80px;">
+    <div id="bp-report-content" style="margin:0 16px 16px;"></div>
+    <div id="bp-report-empty" class="empty-state" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">No data yet</div>
+      <div class="empty-sub">Save blood pressure readings first.</div>
+    </div>
+    <div style="padding:0 16px;" id="bp-pdf-btn-wrap">
+      <button class="btn btn-primary" onclick="downloadBPPDF()">📄 Generate & Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NEW MODALS ──────────────────────────────────────────────── -->
+
+<!-- BS Reset -->
+<div class="modal-overlay" id="modal-bs-reset">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--danger);">⚠️ Reset Blood Sugar Records</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">This will permanently delete ALL blood sugar records for this patient. Type "DELETE" to confirm.</p>
+    <div class="form-group"><label>Confirm</label><input type="text" id="bs-reset-pass" placeholder='Type "DELETE"'></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-bs-reset')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmBSReset()">Delete All</button>
+    </div>
+  </div>
+</div>
+
+<!-- BP Reset -->
+<div class="modal-overlay" id="modal-bp-reset">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--danger);">⚠️ Reset Blood Pressure Records</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">This will permanently delete ALL blood pressure records for this patient. Type "DELETE" to confirm.</p>
+    <div class="form-group"><label>Confirm</label><input type="text" id="bp-reset-pass" placeholder='Type "DELETE"'></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-bp-reset')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmBPReset()">Delete All</button>
+    </div>
+  </div>
+</div>
+
+<!-- BS Share -->
+<div class="modal-overlay" id="modal-bs-share">
+  <div class="modal-box">
+    <div class="modal-title">📤 Share Blood Sugar Report</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Download the PDF to share via WhatsApp, Gmail, or any app.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary" onclick="downloadBSPDF();closeModal('modal-bs-share')">📥 Download PDF</button>
+      <button class="btn btn-outline" onclick="copyBSText();closeModal('modal-bs-share')">📋 Copy as Text</button>
+    </div>
+    <button class="btn btn-outline" style="margin-top:10px;width:100%;" onclick="closeModal('modal-bs-share')">Close</button>
+  </div>
+</div>
+
+<!-- BP Share -->
+<div class="modal-overlay" id="modal-bp-share">
+  <div class="modal-box">
+    <div class="modal-title">📤 Share Blood Pressure Report</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Download the PDF to share via WhatsApp, Gmail, or any app.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary" onclick="downloadBPPDF();closeModal('modal-bp-share')">📥 Download PDF</button>
+      <button class="btn btn-outline" onclick="copyBPText();closeModal('modal-bp-share')">📋 Copy as Text</button>
+    </div>
+    <button class="btn btn-outline" style="margin-top:10px;width:100%;" onclick="closeModal('modal-bp-share')">Close</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+</div><!-- #app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- ================================================================
+     FIREBASE INITIALIZATION
+     ================================================================ -->
+<script>
+  // REPLACE THESE VALUES WITH YOUR FIREBASE PROJECT CONFIGURATION
+  const firebaseConfig = {
+   apiKey: "AIzaSyAbeT7St4cOqf-U71jbkyaRMdZV0rt4-AY",
+  authDomain: "medistock-daeac.firebaseapp.com",
+  databaseURL: "https://medistock-daeac-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "medistock-daeac",
+  storageBucket: "medistock-daeac.firebasestorage.app",
+  messagingSenderId: "264143388382",
+  appId: "1:264143388382:web:3c1e444e244e24dd18cc4f"
+  };
+  
+  if(firebaseConfig.apiKey === "YOUR_API_KEY") {
+     console.warn("⚠️ Warning: Please replace the placeholder Firebase config with your actual credentials!");
+  }
+  
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+</script>
+
+<script>
+/* ================================================================
+   MEDISTOCK v2 – JavaScript
+   ================================================================ */
+let currentUser = null, currentPatientId = null;
+let editingOrderEntries = [], calculatorEntries = [], pendingDeleteFn = null, currentInvoiceId = null;
+
+// Dosage Execution Times in Minutes since midnight
+const DOSE_TIMES = {
+    morning: 9 * 60,   // 09:00 AM
+    noon: 13 * 60,     // 01:00 PM
+    evening: 16 * 60,  // 04:00 PM
+    night: 22 * 60     // 10:00 PM
+};
+
+/* ── STATE & DATA SYNCHRONIZATION ────────────────────────────────── */
+let appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {}, draftOrders: {}, draftCalculators: {} };
+
+function syncToFirebase() {
+  if (currentUser && currentUser.uid) {
+    db.ref('users/' + currentUser.uid + '/data').set(appData);
+  }
+}
+
+// Data Accessors
+const getPatients = () => appData.patients || [];
+const savePatients = p => { appData.patients = p; syncToFirebase(); };
+const getMedicines = pid => appData.medicines[pid] || [];
+const saveMedicines = (pid, m) => { appData.medicines[pid] = m; syncToFirebase(); };
+const getInvoices = pid => appData.invoices[pid] || [];
+const saveInvoices = (pid, inv) => { appData.invoices[pid] = inv; syncToFirebase(); };
+const getSettings = () => appData.settings || {};
+const saveSettingsDB = s => { appData.settings = s; syncToFirebase(); };
+const getBSEntries = pid => appData.bs[pid] || [];
+const saveBSEntries = (pid, e) => { appData.bs[pid] = e; syncToFirebase(); };
+const getBPEntries = pid => appData.bp[pid] || [];
+const saveBPEntries = (pid, e) => { appData.bp[pid] = e; syncToFirebase(); };
+const getDraftOrders = pid => (appData.draftOrders && appData.draftOrders[pid]) ? appData.draftOrders[pid] : [];
+const saveDraftOrdersDB = (pid, o) => { if(!appData.draftOrders) appData.draftOrders={}; appData.draftOrders[pid] = o; syncToFirebase(); };
+const getDraftCalculators = pid => (appData.draftCalculators && appData.draftCalculators[pid]) ? appData.draftCalculators[pid] : [];
+const saveDraftCalculatorsDB = (pid, c) => { if(!appData.draftCalculators) appData.draftCalculators={}; appData.draftCalculators[pid] = c; syncToFirebase(); };
+
+/* ── DATE HELPERS ────────────────────────────────────────────────── */
+function fmtDate(d) {
+  if (!d) d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return dd+'/'+mm+'/'+yyyy;
+}
+function parseDateToObj(ddmmyyyy) {
+  if(!ddmmyyyy) return new Date(0);
+  let [d,m,y] = ddmmyyyy.split('/');
+  return new Date(y, m-1, d);
+}
+function autoSlashDate(inp) {
+  let v = inp.value.replace(/[^\d]/g,'');
+  if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
+  if (v.length > 5) v = v.slice(0,5)+'/'+v.slice(5);
+  inp.value = v.slice(0,10);
+}
+function parseDateSort(dstr) {
+  if (!dstr) return '';
+  const p = dstr.split('/');
+  if (p.length !== 3) return dstr;
+  return p[2]+'-'+p[1]+'-'+p[0];
+}
+function todayDMY() { return fmtDate(new Date()); }
+function format12Hour(timeStr) {
+  if (!timeStr || !timeStr.includes(':')) return timeStr;
+  let [hours, minutes] = timeStr.split(':');
+  hours = parseInt(hours, 10);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  return hours + ':' + minutes + ' ' + ampm;
+}
+function nowTime() {
+  const n = new Date();
+  let hours = n.getHours();
+  const minutes = String(n.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  return String(hours).padStart(2, '0') + ':' + minutes + ' ' + ampm;
+}
+
+/* ── AUTO DEDUCTION ENGINE ───────────────────────────────────────── */
+function runAutoDeduction() {
+    if (!currentPatientId) return;
+    let meds = getMedicines(currentPatientId);
+    let updated = false;
+    const now = new Date();
+    const todayStr = fmtDate(now);
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    
+    meds.forEach(m => {
+        if (!m.dosage || !m.lastDeducted) return;
+        
+        ['morning', 'noon', 'evening', 'night'].forEach(slot => {
+            let dose = parseInt(m.dosage[slot]) || 0;
+            if (dose > 0 && m.qty > 0) {
+                let lastStr = m.lastDeducted[slot];
+                let lastD = parseDateToObj(lastStr);
+                let currD = parseDateToObj(todayStr);
+                
+                // Safe difference ignoring local timezone changes
+                let utcLast = Date.UTC(lastD.getFullYear(), lastD.getMonth(), lastD.getDate());
+                let utcCurr = Date.UTC(currD.getFullYear(), currD.getMonth(), currD.getDate());
+                let diffDays = Math.floor((utcCurr - utcLast) / (1000 * 3600 * 24));
+                
+                if (diffDays > 0) {
+                    // missed full days prior to today
+                    let fullDays = diffDays - 1;
+                    if (fullDays > 0) {
+                        m.qty = Math.max(0, m.qty - (dose * fullDays));
+                        updated = true;
+                    }
+                    
+                    // process for today
+                    if (m.qty > 0 && nowMins >= DOSE_TIMES[slot]) {
+                        m.qty = Math.max(0, m.qty - dose);
+                        m.lastDeducted[slot] = todayStr;
+                        updated = true;
+                    } else if (nowMins < DOSE_TIMES[slot]) {
+                        // Not time for today's dose yet. Set it back to yesterday.
+                        let yest = new Date(now);
+                        yest.setDate(yest.getDate() - 1);
+                        m.lastDeducted[slot] = fmtDate(yest);
+                    }
+                }
+            }
+        });
+    });
+    
+    if (updated) {
+        saveMedicines(currentPatientId, meds);
+        updateTileCounts();
+        if (document.getElementById('page-view-stock').classList.contains('active')) renderViewStock();
+        if (document.getElementById('page-low-stock').classList.contains('active')) renderLowStock();
+        if (document.getElementById('page-stock-report').classList.contains('active')) renderStockReport();
+    }
+}
+
+// Global Low Stock check - uses predicted days to run out (<= 7 days)
+function isMedLow(m) {
+    let dailyDose = 0;
+    if (m.dosage) {
+        dailyDose = (parseInt(m.dosage.morning)||0) + (parseInt(m.dosage.noon)||0) + 
+                    (parseInt(m.dosage.evening)||0) + (parseInt(m.dosage.night)||0);
+    }
+    if (dailyDose > 0) return Math.floor(m.qty / dailyDose) <= 7;
+    return m.qty <= 10; // Fallback safe threshold if no dosage configured
+}
+
+/* ── NAVIGATION ──────────────────────────────────────────────────── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); el.scrollTop = 0; }
+}
+function backToHome() {
+  showPage('page-home');
+  ['profile','settings','backup'].forEach(s => document.getElementById('sub-'+s).style.display = 'none');
+  document.getElementById('no-patient-msg').style.display = currentPatientId ? 'none' : 'block';
+  document.getElementById('patient-dashboard').style.display = currentPatientId ? 'block' : 'none';
+  if (currentPatientId) updateTileCounts();
+}
+
+/* ── THEME ───────────────────────────────────────────────────────── */
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  const d = document.body.classList.contains('dark-mode');
+  const icon = d ? '☀️' : '🌙';
+  const label = d ? '☀️ Light' : '🌙 Dark';
+  document.getElementById('theme-toggle').textContent = icon;
+  const ts = document.getElementById('theme-toggle-settings');
+  if (ts) ts.textContent = label;
+  localStorage.setItem('ms_theme', d ? 'dark' : 'light');
+}
+function initTheme() {
+  if (localStorage.getItem('ms_theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    const el = document.getElementById('theme-toggle');
+    if (el) el.textContent = '☀️';
+  }
+}
+
+/* ── FIREBASE AUTHENTICATION ─────────────────────────────────────── */
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    if (user.providerData.some(p => p.providerId === 'password') && !user.emailVerified) {
+      showToast('Please verify your email address. Check your inbox.', 'warning');
+      auth.signOut();
+      return;
+    }
+    
+    currentUser = { uid: user.uid, email: user.email, name: user.displayName || 'User' };
+    
+    db.ref('users/' + user.uid + '/data').once('value').then(snap => {
+      if (snap.exists()) {
+        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {}, draftOrders: {}, draftCalculators: {} }, snap.val());
+      } else {
+        appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {}, draftOrders: {}, draftCalculators: {} };
+        syncToFirebase();
+      }
+      loadHome();
+      if (auth.currentUser) showPage('page-home');
+      showToast('Welcome, ' + currentUser.name.split(' ')[0] + '! 👋', 'success');
+    }).catch(err => {
+      showToast('Error loading data: ' + err.message, 'error');
+    });
+
+  } else {
+    currentUser = null;
+    appData = { patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {}, draftOrders: {}, draftCalculators: {} };
+    showPage('page-auth');
+  }
+});
+
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!name || !email || !pass) return showToast('Please fill all fields','error');
+  if (pass.length < 6) return showToast('Password must be at least 6 characters','error');
+
+  auth.createUserWithEmailAndPassword(email, pass).then(cred => {
+    cred.user.updateProfile({ displayName: name });
+    cred.user.sendEmailVerification().then(() => {
+      showToast('Verification email sent! Please verify to log in.','success');
+      auth.signOut(); 
+      switchAuthTab('login');
+    });
+  }).catch(err => showToast(err.message, 'error'));
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) return showToast('Please fill all fields','error');
+  auth.signInWithEmailAndPassword(email, pass).catch(err => showToast(err.message, 'error'));
+}
+
+function doGoogleLogin() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => showToast(err.message, 'error'));
+}
+
+function doLogout() {
+  if (!confirm('Log out?')) return;
+  auth.signOut();
+  currentPatientId = null; 
+  editingOrderEntries = [];
+  calculatorEntries = [];
+  closeSidebar();
+  showToast('Logged out successfully');
+}
+
+function sendResetLink() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) return showToast('Enter your registered email address','error');
+  auth.sendPasswordResetEmail(email).then(() => {
+    showToast('Password reset link sent to your email!', 'success');
+    showPage('page-auth');
+    switchAuthTab('login');
+  }).catch(err => showToast(err.message, 'error'));
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+function showSubPage(id) {
+  ['profile','settings','backup'].forEach(s => document.getElementById('sub-'+s).style.display = s===id ? 'block' : 'none');
+  document.getElementById('no-patient-msg').style.display = 'none';
+  document.getElementById('patient-dashboard').style.display = 'none';
+}
+function hideSubPage() {
+  ['profile','settings','backup'].forEach(s => document.getElementById('sub-'+s).style.display = 'none');
+  document.getElementById('no-patient-msg').style.display = currentPatientId ? 'none' : 'block';
+  document.getElementById('patient-dashboard').style.display = currentPatientId ? 'block' : 'none';
+  if (currentPatientId) updateTileCounts();
+}
+
+/* ── PROFILE & SETTINGS ──────────────────────────────────────────── */
+function saveProfile() {
+  const name = document.getElementById('prof-name').value.trim();
+  if (!name) return showToast('Name is required','error');
+  
+  if(auth.currentUser) {
+    auth.currentUser.updateProfile({ displayName: name }).then(() => {
+      currentUser.name = name;
+      document.getElementById('sidebar-name').textContent = name;
+      document.getElementById('prof-disp-name').textContent = name;
+      showToast('Profile saved ✅','success');
+    }).catch(err => showToast(err.message, 'error'));
+  }
+}
+
+/* ── BACKUP ──────────────────────────────────────────────────────── */
+function exportBackup() {
+  const data = { version: 4, exported: todayDMY(), appData: appData };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download = 'medistock_backup_'+todayDMY().replace(/\//g,'-')+'.json'; a.click();
+  showToast('Backup exported ✅','success');
+}
+function importBackup(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if(d.appData) {
+        appData = Object.assign({ patients: [], medicines: {}, invoices: {}, bs: {}, bp: {}, settings: {}, draftOrders: {}, draftCalculators: {} }, d.appData);
+        syncToFirebase();
+        showToast('Backup restored ✅ Reloading...','success');
+        setTimeout(() => window.location.reload(), 1500);
+      } else { showToast('Invalid backup format','error'); }
+    } catch { showToast('Failed to restore backup','error'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ── HOME LOAD ───────────────────────────────────────────────────── */
+function loadHome() {
+  if (!currentUser) return;
+  document.getElementById('sidebar-name').textContent = currentUser.name;
+  document.getElementById('sidebar-email').textContent = currentUser.email;
+  document.getElementById('prof-name').value = currentUser.name;
+  document.getElementById('prof-email').value = currentUser.email;
+  document.getElementById('prof-disp-name').textContent = currentUser.name;
+  document.getElementById('prof-disp-email').textContent = currentUser.email;
+  
+  document.getElementById('welcome-banner').style.display = 'block';
+  document.getElementById('welcome-text').textContent = 'Hello, ' + currentUser.name.split(' ')[0] + '! 👋';
+  renderPatientSelect();
+}
+
+/* ── PATIENTS ────────────────────────────────────────────────────── */
+function renderPatientSelect() {
+  const patients = getPatients();
+  const sel = document.getElementById('patient-select');
+  sel.innerHTML = '<option value="">— Select a patient —</option>';
+  patients.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name + (p.age ? ' ('+p.age+' yrs)' : '');
+    sel.appendChild(opt);
+  });
+  if (currentPatientId) sel.value = currentPatientId;
+}
+function onPatientChange() {
+  currentPatientId = document.getElementById('patient-select').value;
+  document.getElementById('no-patient-msg').style.display = currentPatientId ? 'none' : 'block';
+  document.getElementById('patient-dashboard').style.display = currentPatientId ? 'block' : 'none';
+  if (currentPatientId) {
+    const p = getPatients().find(x => x.id === currentPatientId);
+    document.getElementById('selected-patient-chip').innerHTML =
+      '<span class="chip">👤 ' + (p ? p.name : '') + '</span>';
+    
+    // FIX: Safely parse arrays from Firebase to prevent crash if Firebase turns them into JSON objects
+    let dOrders = getDraftOrders(currentPatientId);
+    editingOrderEntries = Array.isArray(dOrders) ? [...dOrders] : Object.values(dOrders);
+    
+    let dCalc = getDraftCalculators(currentPatientId);
+    calculatorEntries = Array.isArray(dCalc) ? [...dCalc] : Object.values(dCalc);
+    
+    runAutoDeduction();
+    updateTileCounts();
+  } else {
+    editingOrderEntries = [];
+    calculatorEntries = [];
+  }
+}
+function updateTileCounts() {
+  if (!currentPatientId) return;
+  const meds = getMedicines(currentPatientId);
+  const inv = getInvoices(currentPatientId);
+  const lowCount = meds.filter(m => isMedLow(m)).length;
+  
+  document.getElementById('tile-count-stock').textContent = meds.length + ' medicine' + (meds.length !== 1 ? 's' : '');
+  document.getElementById('tile-count-report').textContent = 'View ' + meds.length + ' items';
+  document.getElementById('tile-count-inv').textContent = inv.length + ' invoice' + (inv.length !== 1 ? 's' : '');
+  document.getElementById('tile-count-low').textContent = lowCount ? lowCount + ' items low' : 'All healthy';
+  
+  const low = document.getElementById('tile-low-stock');
+  if (low) low.style.borderColor = lowCount ? '#FFCDD2' : '';
+  
+  const bsCount = getBSEntries(currentPatientId).length;
+  const bpCount = getBPEntries(currentPatientId).length;
+  document.getElementById('tile-count-bs').textContent = bsCount ? bsCount + ' reading' + (bsCount !== 1 ? 's' : '') : 'Log reading';
+  document.getElementById('tile-count-bp').textContent = bpCount ? bpCount + ' reading' + (bpCount !== 1 ? 's' : '') : 'Log reading';
+}
+function showAddPatientModal() { openModal('modal-add-patient'); }
+function addPatient() {
+  const name = document.getElementById('new-patient-name').value.trim();
+  if (!name) return showToast('Patient name required','error');
+  const age = document.getElementById('new-patient-age').value;
+  const notes = document.getElementById('new-patient-notes').value.trim();
+  const patients = getPatients();
+  const p = { id:'p_'+Date.now(), name, age, notes, created: todayDMY() };
+  patients.push(p); savePatients(patients);
+  renderPatientSelect();
+  document.getElementById('patient-select').value = p.id;
+  currentPatientId = p.id; onPatientChange();
+  closeModal('modal-add-patient');
+  document.getElementById('new-patient-name').value = '';
+  document.getElementById('new-patient-age').value = '';
+  document.getElementById('new-patient-notes').value = '';
+  showToast('Patient added ✅','success');
+}
+
+/* ── MODULE ROUTER ───────────────────────────────────────────────── */
+function showModule(mod) {
+  if (!currentPatientId) return showToast('Please select a patient first','error');
+  const pages = { 'add-stock':'page-add-stock', 'view-stock':'page-view-stock', 'stock-report':'page-stock-report', 'stock-out':'page-stock-out', 'order-list':'page-order-list', 'order-invoice':'page-order-invoice', 'low-stock':'page-low-stock', 'calculator':'page-calculator', 'bs-level':'page-bs-level', 'bs-report':'page-bs-report', 'bp-level':'page-bp-level', 'bp-report':'page-bp-report' };
+  switch (mod) {
+    case 'add-stock': clearAddStockForm(); break;
+    case 'view-stock': renderViewStock(); break;
+    case 'stock-report': renderStockReport(); break;
+    case 'stock-out': renderStockOut(); break;
+    case 'order-list': renderOrderList(); break;
+    case 'order-invoice': renderInvoiceList(); break;
+    case 'low-stock': renderLowStock(); break;
+    case 'calculator': renderCalculator(); break;
+    case 'bs-level': initBSForm(); renderBSEntries(); break;
+    case 'bs-report': renderBSReport(); break;
+    case 'bp-level': initBPForm(); renderBPEntries(); break;
+    case 'bp-report': renderBPReport(); break;
+  }
+  showPage(pages[mod]);
+}
+
+/* ── MEDICINE FORM ───────────────────────────────────────────────── */
+function clearAddStockForm() {
+  ['med-name','med-qty','med-price','med-mfr','med-dist','dose-morning','dose-noon','dose-evening','dose-night', 'med-packed-qty'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('med-packed').value = 'Tab';
+  document.getElementById('editing-med-id').value = '';
+}
+
+function saveMedicine() {
+  if (!currentPatientId) return showToast('Select a patient first','error');
+  const name = document.getElementById('med-name').value.trim();
+  const qty = document.getElementById('med-qty').value;
+  if (!name||qty==='') return showToast('Medicine name and quantity are required','error');
+  
+  const doseM = parseInt(document.getElementById('dose-morning').value) || 0;
+  const doseN = parseInt(document.getElementById('dose-noon').value) || 0;
+  const doseE = parseInt(document.getElementById('dose-evening').value) || 0;
+  const doseNt = parseInt(document.getElementById('dose-night').value) || 0;
+  
+  const meds = getMedicines(currentPatientId);
+  const editId = document.getElementById('editing-med-id').value;
+  const existing = editId ? meds.find(m => m.id === editId) : null;
+  
+  // Safe initialization of last deducted timestamps for brand new settings
+  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+  const today = todayDMY();
+  let yestD = new Date(); yestD.setDate(yestD.getDate() - 1);
+  const yesterday = fmtDate(yestD);
+  
+  let currentLastDeducted = existing ? (existing.lastDeducted || {}) : {};
+  let lastDeductedObj = {
+      morning: currentLastDeducted.morning || (nowMins >= DOSE_TIMES.morning ? today : yesterday),
+      noon: currentLastDeducted.noon || (nowMins >= DOSE_TIMES.noon ? today : yesterday),
+      evening: currentLastDeducted.evening || (nowMins >= DOSE_TIMES.evening ? today : yesterday),
+      night: currentLastDeducted.night || (nowMins >= DOSE_TIMES.night ? today : yesterday)
+  };
+
+  const med = {
+    id: editId || 'm_'+Date.now(), name, qty: parseInt(qty),
+    price: parseFloat(document.getElementById('med-price').value)||0,
+    packed: document.getElementById('med-packed').value,
+    packedQty: parseInt(document.getElementById('med-packed-qty').value) || 0,
+    dosage: { morning: doseM, noon: doseN, evening: doseE, night: doseNt },
+    lastDeducted: lastDeductedObj,
+    mfr: document.getElementById('med-mfr').value.trim(),
+    dist: document.getElementById('med-dist').value.trim(),
+    created: existing ? existing.created : todayDMY()
+  };
+  
+  if (editId) { const idx = meds.findIndex(m => m.id === editId); if (idx !== -1) meds[idx] = med; }
+  else meds.push(med);
+  
+  saveMedicines(currentPatientId, meds);
+  showToast(editId ? 'Medicine updated ✅' : 'Medicine added ✅','success');
+  backToHome();
+}
+
+/* ── VIEW STOCK ──────────────────────────────────────────────────── */
+function renderViewStock() {
+  const q = (document.getElementById('stock-search').value||'').toLowerCase();
+  const meds = getMedicines(currentPatientId).filter(m => !q || m.name.toLowerCase().includes(q));
+  const list = document.getElementById('view-stock-list');
+  const empty = document.getElementById('view-stock-empty');
+  if (!meds.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  
+  list.innerHTML = meds.map(m => {
+    let lowBadge = isMedLow(m) ? '<span class="badge badge-low">Low</span>' : '';
+    return `
+    <div class="med-card">
+      <div class="med-thumb" onclick="openMedDetail('${m.id}')">💊</div>
+      <div class="med-info" onclick="openMedDetail('${m.id}')">
+        <div class="med-name">${m.name}</div>
+        <div class="med-sub">Qty: ${m.qty} ${m.packedQty ? `(Packed: ${m.packedQty})` : ''} &nbsp;·&nbsp; ₹${m.price.toFixed(2)}</div>
+      </div>
+      ${lowBadge}
+      <div class="med-actions">
+        <button class="btn btn-outline btn-sm btn-icon-sq" onclick="editMed('${m.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon-sq" onclick="confirmDeleteMed('${m.id}')">🗑️</button>
+      </div>
+    </div>
+  `}).join('');
+}
+
+function openMedDetail(id) {
+  const m = getMedicines(currentPatientId).find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('detail-page-title').textContent = m.name;
+  
+  let doseStr = m.dosage ? `M: ${m.dosage.morning||0}, N: ${m.dosage.noon||0}, E: ${m.dosage.evening||0}, Nt: ${m.dosage.night||0}` : '—';
+  
+  document.getElementById('detail-info').innerHTML = [
+    ['Medicine Name', m.name], ['Stock Quantity', m.qty],
+    ['Price', '₹' + m.price.toFixed(2)], ['Packed Type', m.packed||'—'],
+    ['Packed Quantity', m.packedQty || '—'],
+    ['Dosage (M/N/E/Nt)', doseStr], ['Manufacturer', m.mfr||'—'],
+    ['Distributor', m.dist||'—'], ['Created', m.created]
+  ].map(([l,v]) => `<div class="detail-row"><div class="detail-lbl">${l}</div><div class="detail-val">${v}</div></div>`).join('');
+  document.getElementById('detail-edit-btn').onclick = () => editMed(id);
+  document.getElementById('detail-delete-btn').onclick = () => confirmDeleteMed(id);
+  showPage('page-med-detail');
+}
+
+function editMed(id) {
+  const m = getMedicines(currentPatientId).find(x => x.id === id);
+  if (!m) return;
+  clearAddStockForm();
+  document.getElementById('med-name').value = m.name;
+  document.getElementById('med-qty').value = m.qty;
+  document.getElementById('med-price').value = m.price;
+  document.getElementById('med-packed').value = m.packed || 'Tab';
+  document.getElementById('med-packed-qty').value = m.packedQty || '';
+  
+  if(m.dosage) {
+      document.getElementById('dose-morning').value = m.dosage.morning || '';
+      document.getElementById('dose-noon').value = m.dosage.noon || '';
+      document.getElementById('dose-evening').value = m.dosage.evening || '';
+      document.getElementById('dose-night').value = m.dosage.night || '';
+  }
+  
+  document.getElementById('med-mfr').value = m.mfr || '';
+  document.getElementById('med-dist').value = m.dist || '';
+  document.getElementById('editing-med-id').value = m.id;
+  showPage('page-add-stock');
+}
+
+function confirmDeleteMed(id) {
+  pendingDeleteFn = () => {
+    saveMedicines(currentPatientId, getMedicines(currentPatientId).filter(m => m.id !== id));
+    closeModal('modal-confirm'); showToast('Medicine deleted','success');
+    if (document.getElementById('page-med-detail').classList.contains('active')) backToHome();
+    else renderViewStock();
+  };
+  document.getElementById('confirm-msg').textContent = 'Delete this medicine? This cannot be undone.';
+  document.getElementById('confirm-yes-btn').onclick = pendingDeleteFn;
+  openModal('modal-confirm');
+}
+
+/* ── STOCK REPORT ────────────────────────────────────────────────── */
+function renderStockReport() {
+  const meds = getMedicines(currentPatientId);
+  const p = getPatients().find(x => x.id === currentPatientId);
+  
+  document.getElementById('report-patient-sub').textContent = 'Patient: ' + (p ? p.name : '—') + '   |   Date: ' + todayDMY();
+  document.getElementById('stock-report-body').innerHTML = meds.map((m,i) => `
+    <tr class="${isMedLow(m) ? 'low-stock' : ''}">
+      <td>${i+1}</td><td>${m.name}${isMedLow(m)?' ⚠️':''}</td>
+      <td>${m.qty}</td><td>₹${m.price.toFixed(2)}</td>
+    </tr>
+  `).join('');
+}
+
+/* ── STOCK OUT ───────────────────────────────────────────────────── */
+function renderStockOut() {
+  const q = (document.getElementById('stockout-search').value||'').toLowerCase();
+  const meds = getMedicines(currentPatientId).filter(m => !q || m.name.toLowerCase().includes(q));
+  
+  document.getElementById('stock-out-list').innerHTML = meds.map(m => `
+    <div class="med-card">
+      <div class="med-thumb">💊</div>
+      <div class="med-info">
+        <div class="med-name">${m.name}</div>
+        <div class="med-sub">In Stock: <strong style="color:${isMedLow(m)?'var(--danger)':'var(--success)'};">${m.qty}</strong> units</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="openManageStock('${m.id}')">Manage</button>
+    </div>
+  `).join('');
+}
+function openManageStock(id) {
+  const m = getMedicines(currentPatientId).find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('manage-med-id').value = id;
+  document.getElementById('qty-used').value = '';
+  document.getElementById('manage-stock-info').innerHTML = `
+    <div style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text-primary);">${m.name}</div>
+    <div class="manage-stats">
+      <div class="manage-stat">
+        <div class="manage-stat-label">In Stock</div>
+        <div class="manage-stat-val" style="color:${isMedLow(m)?'var(--danger)':'var(--success)'};">${m.qty}</div>
+      </div>
+      <div class="manage-stat">
+        <div class="manage-stat-label">Price</div>
+        <div class="manage-stat-val" style="color:var(--accent);">₹${m.price.toFixed(2)}</div>
+      </div>
+    </div>
+    ${m.packed ? '<div style="margin-top:10px;font-size:13px;color:var(--text-secondary);">Type: <strong>'+m.packed+'</strong></div>' : ''}
+  `;
+  showPage('page-manage-stock');
+}
+function submitStockOut() {
+  const id = document.getElementById('manage-med-id').value;
+  const used = parseInt(document.getElementById('qty-used').value);
+  if (!used || used <= 0) return showToast('Enter a valid quantity','error');
+  const meds = getMedicines(currentPatientId);
+  const idx = meds.findIndex(m => m.id === id);
+  if (idx === -1) return;
+  if (used > meds[idx].qty) return showToast('Exceeds available stock','error');
+  
+  meds[idx].qty -= used; 
+  saveMedicines(currentPatientId, meds);
+  
+  const low = isMedLow(meds[idx]);
+  showToast(low ? '⚠️ Low stock predict: ' + meds[idx].name : 'Stock updated ✅ Remaining: ' + meds[idx].qty, low ? 'error' : 'success');
+  showPage('page-stock-out'); renderStockOut();
+}
+
+/* ── ORDER LIST ──────────────────────────────────────────────────── */
+function renderOrderList() {
+  const meds = getMedicines(currentPatientId);
+  const sel = document.getElementById('order-med-select');
+  sel.innerHTML = '<option value="">— Select medicine —</option>';
+  meds.forEach(m => { const o = document.createElement('option'); o.value=m.id; o.textContent=m.name; sel.appendChild(o); });
+  document.getElementById('order-qty').value = '';
+  renderOrderEntries();
+}
+function addOrderEntry() {
+  const medId = document.getElementById('order-med-select').value;
+  const qty = parseInt(document.getElementById('order-qty').value);
+  if (!medId) return showToast('Select a medicine', 'error');
+  if (!qty || qty <= 0) return showToast('Enter valid quantity', 'error');
+  const med = getMedicines(currentPatientId).find(m => m.id === medId);
+  if (!med) return;
+  
+  editingOrderEntries.push({ medId, name: med.name, qty });
+  renderOrderEntries();
+  
+  // FIX: Silently auto-save to Firebase when an entry is added
+  saveDraftOrdersDB(currentPatientId, editingOrderEntries);
+  
+  document.getElementById('order-med-select').value = '';
+  document.getElementById('order-qty').value = '';
+}
+
+function removeOrderEntry(i) {
+  editingOrderEntries.splice(i, 1);
+  renderOrderEntries();
+  
+  // FIX: Silently auto-save to Firebase when an entry is removed
+  saveDraftOrdersDB(currentPatientId, editingOrderEntries);
+}
+function renderOrderEntries() {
+  const cont = document.getElementById('order-entries-list');
+  const empty = document.getElementById('order-empty');
+  const fab = document.getElementById('fab-generate');
+  if (!editingOrderEntries.length) { cont.innerHTML=''; empty.style.display='block'; fab.style.display='none'; return; }
+  empty.style.display='none'; fab.style.display='block';
+  cont.innerHTML = editingOrderEntries.map((e,i) => `
+    <div class="order-entry">
+      <div class="med-thumb" style="width:36px;height:36px;font-size:16px;border-radius:10px;">💊</div>
+      <div class="oe-name">${e.name}</div>
+      <div class="oe-qty">×${e.qty}</div>
+      <button class="btn btn-danger btn-sm btn-icon-sq" onclick="removeOrderEntry(${i})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function saveOrderDraft() {
+  if (!currentPatientId) return;
+  saveDraftOrdersDB(currentPatientId, editingOrderEntries);
+  showToast('Order draft saved ✅', 'success');
+}
+function clearOrderList() {
+  if(!confirm('Clear order list?')) return;
+  editingOrderEntries = [];
+  saveDraftOrdersDB(currentPatientId, []);
+  renderOrderEntries();
+}
+function generateOrderList() {
+  if (!editingOrderEntries.length) return showToast('Add medicines first','error');
+  const invoices = getInvoices(currentPatientId);
+  const inv = { id:'inv_'+Date.now(), number:'ORD-'+String(invoices.length+1).padStart(4,'0'), date:todayDMY(), patientId:currentPatientId, entries:[...editingOrderEntries] };
+  invoices.push(inv); saveInvoices(currentPatientId, invoices);
+  
+  // Clear drafts after successful generation
+  editingOrderEntries = [];
+  saveDraftOrdersDB(currentPatientId, []);
+  
+  showToast('Order list generated: ' + inv.number,'success');
+  showModule('order-invoice');
+}
+
+/* ── INVOICES ────────────────────────────────────────────────────── */
+function renderInvoiceList() {
+  const invoices = getInvoices(currentPatientId);
+  const list = document.getElementById('invoice-list');
+  const empty = document.getElementById('invoice-empty');
+  if (!invoices.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = invoices.slice().reverse().map(inv => `
+    <div class="invoice-card">
+      <div style="width:44px;height:44px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🧾</div>
+      <div style="flex:1;" onclick="openInvoiceDetail('${inv.id}')">
+        <div class="inv-num">${inv.number}</div>
+        <div class="inv-date">📅 ${inv.date} · ${inv.entries.length} item${inv.entries.length!==1?'s':''}</div>
+      </div>
+      <button class="btn btn-danger btn-sm btn-icon-sq" onclick="confirmDeleteInvoice('${inv.id}')">🗑️</button>
+    </div>
+  `).join('');
+}
+function openInvoiceDetail(id) {
+  currentInvoiceId = id;
+  const inv = getInvoices(currentPatientId).find(i => i.id === id);
+  if (!inv) return;
+  const p = getPatients().find(x => x.id === currentPatientId);
+  document.getElementById('invoice-meta').innerHTML = `<span><strong>Patient:</strong> ${p?p.name:'—'}</span><span><strong>Date:</strong> ${inv.date}</span>`;
+  document.getElementById('invoice-detail-body').innerHTML = inv.entries.map((e,i) => `<tr><td>${i+1}</td><td>${e.name}</td><td>${e.qty}</td></tr>`).join('');
+  showPage('page-invoice-detail');
+}
+function confirmDeleteInvoice(id) {
+  pendingDeleteFn = () => {
+    saveInvoices(currentPatientId, getInvoices(currentPatientId).filter(i => i.id !== id));
+    closeModal('modal-confirm'); renderInvoiceList(); showToast('Invoice deleted','success');
+  };
+  document.getElementById('confirm-msg').textContent = 'Delete this invoice? This cannot be undone.';
+  document.getElementById('confirm-yes-btn').onclick = pendingDeleteFn;
+  openModal('modal-confirm');
+}
+
+/* ── CALCULATOR ──────────────────────────────────────────────────── */
+function renderCalculator() {
+  const meds = getMedicines(currentPatientId);
+  const sel = document.getElementById('calc-med-select');
+  sel.innerHTML = '<option value="">— Select medicine —</option>';
+  meds.forEach(m => { const o = document.createElement('option'); o.value=m.id; o.textContent=`${m.name} (₹${m.price.toFixed(2)})`; sel.appendChild(o); });
+  document.getElementById('calc-qty').value = '';
+  renderCalcEntries();
+}
+function addCalcEntry() {
+  const medId = document.getElementById('calc-med-select').value;
+  const qty = parseInt(document.getElementById('calc-qty').value);
+  if (!medId) return showToast('Select a medicine','error');
+  if (!qty || qty <= 0) return showToast('Enter valid quantity','error');
+  const med = getMedicines(currentPatientId).find(m => m.id === medId);
+  if (!med) return;
+  
+  calculatorEntries.push({ medId, name: med.name, qty, price: med.price, total: med.price * qty });
+  renderCalcEntries();
+  
+  // FIX: Silently auto-save to Firebase when an entry is added
+  saveDraftCalculatorsDB(currentPatientId, calculatorEntries);
+  
+  document.getElementById('calc-med-select').value = '';
+  document.getElementById('calc-qty').value = '';
+}
+
+function removeCalcEntry(i) { 
+  calculatorEntries.splice(i,1); 
+  renderCalcEntries(); 
+  
+  // FIX: Silently auto-save to Firebase when an entry is removed
+  saveDraftCalculatorsDB(currentPatientId, calculatorEntries);
+}
+function renderCalcEntries() {
+  const cont = document.getElementById('calc-entries-list');
+  const empty = document.getElementById('calc-empty');
+  const totalBar = document.getElementById('calc-total-bar');
+  
+  if (!calculatorEntries.length) { 
+    cont.innerHTML=''; 
+    empty.style.display='block'; 
+    totalBar.style.display='none'; 
+    return; 
+  }
+  
+  empty.style.display='none'; 
+  totalBar.style.display='block';
+  
+  let grandTotal = 0;
+  cont.innerHTML = calculatorEntries.map((e,i) => {
+    grandTotal += e.total;
+    return `
+    <div class="order-entry">
+      <div class="med-thumb" style="width:36px;height:36px;font-size:16px;border-radius:10px;">🧮</div>
+      <div class="oe-name">${e.name} <div style="font-size:11px;color:var(--text-secondary);font-weight:400;margin-top:2px;">₹${e.price.toFixed(2)} × ${e.qty}</div></div>
+      <div class="oe-qty" style="background:var(--success-soft);color:var(--success);">₹${e.total.toFixed(2)}</div>
+      <button class="btn btn-danger btn-sm btn-icon-sq" onclick="removeCalcEntry(${i})">🗑️</button>
+    </div>
+  `}).join('');
+  
+  document.getElementById('calc-grand-total').textContent = `₹${grandTotal.toFixed(2)}`;
+}
+
+function saveCalculatorDraft() {
+  if (!currentPatientId) return;
+  saveDraftCalculatorsDB(currentPatientId, calculatorEntries);
+  showToast('Calculator draft saved ✅', 'success');
+}
+function clearCalcList() {
+  if(!confirm('Clear calculator list?')) return;
+  calculatorEntries = [];
+  saveDraftCalculatorsDB(currentPatientId, []);
+  renderCalcEntries();
+}
+
+/* ── LOW STOCK PREDICTIONS ───────────────────────────────────────── */
+function renderLowStock() {
+  const meds = getMedicines(currentPatientId);
+  const list = document.getElementById('low-stock-list');
+  const empty = document.getElementById('low-stock-empty');
+  
+  if (!meds.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  
+  let predictions = meds.map(m => {
+      let dailyDose = 0;
+      if (m.dosage) {
+          dailyDose = (parseInt(m.dosage.morning)||0) + (parseInt(m.dosage.noon)||0) + 
+                      (parseInt(m.dosage.evening)||0) + (parseInt(m.dosage.night)||0);
+      }
+      
+      let daysLeft = Infinity;
+      let dateStr = 'No auto-dosage configured';
+      let isLow = false;
+      
+      if (dailyDose > 0) {
+          daysLeft = Math.floor(m.qty / dailyDose);
+          let d = new Date();
+          d.setDate(d.getDate() + daysLeft);
+          dateStr = fmtDate(d);
+          isLow = daysLeft <= 7;
+      } else {
+          isLow = m.qty <= 10;
+      }
+      
+      return { ...m, dailyDose, daysLeft, dateStr, isLow };
+  });
+  
+  predictions.sort((a,b) => a.daysLeft - b.daysLeft);
+  
+  let hasItems = predictions.some(p => p.qty > 0 || p.daysLeft < Infinity);
+  if(!hasItems && !predictions.length){ empty.style.display='block'; return; }
+  
+  empty.style.display='none';
+  list.innerHTML = predictions.map(m => `
+      <div class="low-med-card" style="${m.isLow ? '' : 'border-color:var(--border); box-shadow:var(--card-shadow);'}">
+        <div class="low-alert-icon" style="${m.isLow ? '' : 'background:var(--accent-soft); color:var(--accent);'}">
+          ${m.isLow ? '⚠️' : '📅'}
+        </div>
+        <div style="flex:1;">
+          <div class="med-name">${m.name}</div>
+          <div class="med-sub">Stock: <strong style="color:${m.isLow ? 'var(--danger)' : 'var(--text-primary)'};">${m.qty} units</strong></div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+             Daily Consumption: <strong>${m.dailyDose > 0 ? m.dailyDose + ' units/day' : 'Not set'}</strong><br>
+             Depletion: <strong>${m.dateStr}</strong> ${m.daysLeft !== Infinity ? `(${m.daysLeft} days left)` : ''}
+          </div>
+        </div>
+        ${m.isLow ? '<span class="badge badge-low">LOW</span>' : ''}
+      </div>
+  `).join('');
+}
+
+/* ── PDF & EXPORT ────────────────────────────────────────────────── */
+let pdfMode = 'stock';
+function shareReport() { pdfMode='stock'; openModal('modal-share'); }
+function shareInvoice() { pdfMode='invoice'; openModal('modal-share'); }
+function generatePDF(mode) { pdfMode=mode; openModal('modal-share'); }
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  if (pdfMode === 'stock') {
+    const meds = getMedicines(currentPatientId);
+    const p = getPatients().find(x => x.id === currentPatientId);
+
+    doc.setTextColor(0,0,0); doc.setFontSize(16); doc.setFont('helvetica','bold');
+    doc.text('MEDICINE STOCK LIST',105,20,{align:'center'});
+    doc.setLineWidth(0.35); doc.setDrawColor(0,0,0); doc.line(65, 22, 145, 22);
+
+    doc.setFontSize(10); doc.setFont('helvetica','normal');
+    doc.text('Patient: ' + (p ? p.name : '—'),15,32);
+    doc.text('Date: ' + todayDMY(),15,38);
+
+    let startY = 45; 
+    const col1 = 15; const col2 = 30; const col3 = 130; const col4 = 155;
+
+    function drawStockHeader(currentY) {
+      doc.setLineWidth(0.3); doc.rect(col1,currentY,180,10);
+      doc.line(col2,currentY,col2,currentY+10); doc.line(col3,currentY,col3,currentY+10); doc.line(col4,currentY,col4,currentY+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      doc.text('SL',20,currentY+6); doc.text('MEDICINE NAME',35,currentY+6); doc.text('QTY',138,currentY+6); doc.text('PRICE',162,currentY+6);
+      return currentY + 10;
+    }
+
+    let y = drawStockHeader(startY);
+
+    meds.forEach((m,i) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      
+      let medNameStr = m.name + (isMedLow(m) ? '  [LOW]' : '');
+      let splitName = doc.splitTextToSize(medNameStr, 90);
+      let rowHeight = Math.max(10, splitName.length * 5 + 4);
+
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = drawStockHeader(20);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      }
+
+      doc.setLineWidth(0.2); doc.rect(col1,y,180,rowHeight);
+      doc.line(col2,y,col2,y+rowHeight); doc.line(col3,y,col3,y+rowHeight); doc.line(col4,y,col4,y+rowHeight);
+
+      doc.text(String(i+1),20,y+6); 
+      doc.text(splitName,35,y+6);  
+      doc.text(String(m.qty),138,y+6); 
+      doc.text('Rs.' + m.price.toFixed(2),162,y+6);
+      
+      y += rowHeight;
+    });
+    doc.save('Medicine_Stock_Report.pdf');
+
+  } else {
+    const inv = getInvoices(currentPatientId).find(i => i.id === currentInvoiceId);
+    if (!inv) return;
+    const p = getPatients().find(x => x.id === currentPatientId);
+
+    doc.setTextColor(0,0,0); doc.setFontSize(16); doc.setFont('helvetica','bold');
+    doc.text('MEDICINE ORDER LIST',105,20,{align:'center'});
+    doc.setLineWidth(0.35); doc.setDrawColor(0,0,0); doc.line(65, 22, 145, 22);
+
+    doc.setFontSize(10); doc.setFont('helvetica','normal');
+    doc.text('Patient: ' + (p ? p.name : '—'),15,32); doc.text('Invoice: ' + inv.number,15,38); doc.text('Date: ' + todayDMY(),15,44);
+
+    let startY = 50; 
+    const col1 = 15; const col2 = 30; const col3 = 160;
+
+    function drawInvoiceHeader(currentY) {
+      doc.setLineWidth(0.2); doc.rect(15,currentY,180,10);
+      doc.line(col2,currentY,col2,currentY+10); doc.line(col3,currentY,col3,currentY+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('SL',20,currentY+6); doc.text('MEDICINE NAME',40,currentY+6); doc.text('QUANTITY',165,currentY+6);
+      return currentY + 10;
+    }
+
+    let y = drawInvoiceHeader(startY);
+
+    inv.entries.forEach((e,i) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+
+      let splitName = doc.splitTextToSize(e.name, 115);
+      let rowHeight = Math.max(10, splitName.length * 5 + 4);
+
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = drawInvoiceHeader(20);
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+      }
+
+      doc.rect(15,y,180,rowHeight);
+      doc.line(col2,y,col2,y+rowHeight); doc.line(col3,y,col3,y+rowHeight);
+      
+      doc.text(String(i+1),20,y+6); 
+      doc.text(splitName,40,y+6); 
+      doc.text(String(e.qty),165,y+6);
+      
+      y += rowHeight;
+    });
+    doc.save('Medicine_Order_List.pdf');
+  }
+
+  closeModal('modal-share'); showToast('PDF downloaded ✅','success');
+}
+function copyReportText() {
+  let text = 'MEDISTOCK\n';
+  if (pdfMode==='stock') {
+    const meds = getMedicines(currentPatientId);
+    text += 'MEDICINE STOCK LIST\n\n';
+    meds.forEach((m,i) => { text += (i+1)+'. '+m.name+' – Qty: '+m.qty+' – ₹'+m.price.toFixed(2)+'\n'; });
+  } else {
+    const inv = getInvoices(currentPatientId).find(i => i.id===currentInvoiceId);
+    if (inv) { text += 'ORDER LIST '+inv.number+'\n\n'; inv.entries.forEach((e,i) => { text += (i+1)+'. '+e.name+' – Qty: '+e.qty+'\n'; }); }
+  }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!','success')).catch(() => showToast('Copy failed','error'));
+  closeModal('modal-share');
+}
+
+/* ── BLOOD SUGAR LEVEL ───────────────────────────────────────────── */
+function initBSForm() {
+  document.getElementById('bs-date').value = todayDMY();
+  document.getElementById('bs-time').value = nowTime();
+  document.getElementById('bs-type').value = '';
+  document.getElementById('bs-count').value = '';
+}
+
+function saveBSEntry() {
+  if (!currentPatientId) return showToast('Select a patient first','error');
+  const date  = document.getElementById('bs-date').value.trim();
+  const time  = document.getElementById('bs-time').value;
+  const type  = document.getElementById('bs-type').value;
+  const count = document.getElementById('bs-count').value;
+  if (!date || !time || !type || !count) return showToast('Please fill all fields','error');
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return showToast('Date must be DD/MM/YYYY','error');
+  const entries = getBSEntries(currentPatientId);
+  entries.push({ id:'bs_'+Date.now(), date, time, type, count: parseFloat(count) });
+  saveBSEntries(currentPatientId, entries);
+  showToast('Reading saved ✅','success');
+  initBSForm();
+  renderBSEntries();
+  updateTileCounts();
+}
+
+function renderBSEntries() {
+  if (!currentPatientId) return;
+  const entries = getBSEntries(currentPatientId).slice().sort((a,b) => {
+    const dc = parseDateSort(b.date).localeCompare(parseDateSort(a.date));
+    return dc !== 0 ? dc : b.time.localeCompare(a.time);
+  });
+  const list  = document.getElementById('bs-entries-list');
+  const empty = document.getElementById('bs-entries-empty');
+  if (!entries.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const typeColor = { 'Before Breakfast':'#1976D2','After Breakfast':'#2E7D32','Before Lunch':'#F57C00','Before Dinner':'#6A1B9A' };
+  list.innerHTML = entries.map(e => `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;box-shadow:var(--card-shadow);display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:#FFF8E1;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🩸</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${e.date} &nbsp;·&nbsp; ${e.time}</div>
+        <div style="font-size:12px;color:${typeColor[e.type]||'var(--accent)'};font-weight:600;margin-top:2px;">${e.type}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:20px;font-weight:700;color:var(--text-primary);">${e.count}</div>
+        <div style="font-size:11px;color:var(--text-muted);">mg/dL</div>
+      </div>
+      <button class="btn btn-danger btn-sm btn-icon-sq" onclick="deleteBSEntry('${e.id}')" style="flex-shrink:0;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function deleteBSEntry(id) {
+  if (!confirm('Delete this reading?')) return;
+  saveBSEntries(currentPatientId, getBSEntries(currentPatientId).filter(e => e.id !== id));
+  renderBSEntries(); updateTileCounts(); showToast('Entry deleted','success');
+}
+
+function confirmBSReset() {
+  const confirmText = document.getElementById('bs-reset-pass').value;
+  if (confirmText !== 'DELETE') return showToast('Type DELETE to confirm','error');
+  saveBSEntries(currentPatientId, []);
+  closeModal('modal-bs-reset');
+  document.getElementById('bs-reset-pass').value = '';
+  renderBSEntries(); updateTileCounts();
+  showToast('All blood sugar records deleted','success');
+}
+
+/* ── BLOOD SUGAR REPORT ──────────────────────────────────────────── */
+function renderBSReport() {
+  const entries = getBSEntries(currentPatientId);
+  const content = document.getElementById('bs-report-content');
+  const empty   = document.getElementById('bs-report-empty');
+  const pdfBtn  = document.getElementById('bs-pdf-btn-wrap');
+  const patient = getPatients().find(p => p.id === currentPatientId);
+
+  if (!entries.length) { content.innerHTML=''; empty.style.display='block'; pdfBtn.style.display='none'; return; }
+  empty.style.display='none'; pdfBtn.style.display='block';
+
+  const byDate = {};
+  entries.forEach(e => { if (!byDate[e.date]) byDate[e.date] = []; byDate[e.date].push(e); });
+  const sortedDates = Object.keys(byDate).sort((a,b) => parseDateSort(b).localeCompare(parseDateSort(a)));
+
+  const TYPES = ['Before Breakfast','After Breakfast','Before Lunch','Before Dinner'];
+  const LABELS = { 'Before Breakfast':'FBS', 'After Breakfast':'PPBS', 'Before Lunch':'PRE-LUNCH', 'Before Dinner':'PRE-DINNER' };
+
+  let html = `
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:20px 16px;box-shadow:var(--card-shadow);">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;text-align:center;letter-spacing:2px;text-decoration:underline;text-underline-offset:4px;margin-bottom:6px;color:#1A2340;">BLOOD SUGAR REPORT</div>
+      <div style="font-size:12px;text-align:center;color:var(--text-secondary);margin-bottom:16px;">Name: <strong>${patient ? patient.name : '—'}</strong> &nbsp;·&nbsp; Generated: ${todayDMY()}</div>
+  `;
+
+  sortedDates.forEach(date => {
+    const dayEntries = byDate[date];
+    const byType = {};
+    TYPES.forEach(t => { byType[t] = null; });
+    dayEntries.forEach(e => {
+      if (!byType[e.type] || e.time > byType[e.type].time) byType[e.type] = e;
+    });
+    const getTime = t => byType[t] ? byType[t].time : '';
+    const getCount = t => byType[t] ? byType[t].count + ' mg/dL' : '—';
+
+    html += `
+      <div style="margin-bottom:18px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #1A2340;padding:7px 6px;background:#1A2340;color:#fff;text-align:center;width:22%;"></th>
+              ${TYPES.map(t => `<th style="border:1px solid #1A2340;padding:7px 4px;background:#1A2340;color:#fff;text-align:center;font-size:11px;">${LABELS[t]}<br><span style="font-weight:400;font-size:10px;opacity:.85;">${getTime(t)}</span></th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid #1A2340;padding:8px 6px;font-weight:700;font-size:12px;text-align:center;background:#F8FAFF;">${date}</td>
+              ${TYPES.map(t => `<td style="border:1px solid #1A2340;padding:8px 4px;text-align:center;${byType[t]?'':'color:#9AA3B5;'}">${getCount(t)}</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+function downloadBSPDF() {
+  const { jsPDF } = window.jspdf;
+  const entries = getBSEntries(currentPatientId);
+  const patient = getPatients().find(p => p.id === currentPatientId);
+
+  if (!entries.length) { showToast('No data to export','error'); return; }
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const TYPES = ['Before Breakfast','After Breakfast','Before Lunch','Before Dinner'];
+  const LABELS = ['FBS','PPBS','PRE-LUNCH','PRE-DINNER'];
+
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('BLOOD SUGAR REPORT', 105, 18, {align:'center'});
+  doc.setLineWidth(0.4); doc.line(65,21,145,21);
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('NAME: ' + (patient ? patient.name : '—'), 15, 35);
+
+  const byDate = {};
+  entries.forEach(e => { if (!byDate[e.date]) byDate[e.date] = []; byDate[e.date].push(e); });
+  const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a)));
+
+  let y = 42; const startX = 15; const dateCol = 35; const valueCol = 38; const rowH = 10; const headerH = 12;
+
+  sortedDates.forEach(date => {
+    if (y > 255) { doc.addPage(); y = 20; }
+    const dayEntries = byDate[date];
+    const byType = {}; TYPES.forEach(t => byType[t] = null);
+    dayEntries.forEach(e => { if (!byType[e.type] || e.time > byType[e.type].time) byType[e.type] = e; });
+
+    doc.setLineWidth(0.2); let x = startX; doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(0,0,0);
+    doc.setFillColor(255,255,255); doc.rect(x, y, dateCol, headerH, 'FD'); doc.text('DATE', x + dateCol/2, y + 7, {align:'center'});
+    x += dateCol;
+
+    LABELS.forEach((label,i) => {
+      doc.setFillColor(255,255,255); doc.rect(x, y, valueCol, headerH, 'FD'); doc.text(label, x + valueCol/2, y + 5, {align:'center'});
+      const time = byType[TYPES[i]] ? byType[TYPES[i]].time : '';
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.text(time, x + valueCol/2, y + 9, {align:'center'});
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+      x += valueCol;
+    });
+
+    y += headerH; x = startX; doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.rect(x, y, dateCol, rowH); doc.text(date, x + dateCol/2, y + 6.5, {align:'center'});
+    x += dateCol;
+
+    TYPES.forEach((t,i) => {
+      doc.rect(x, y, valueCol, rowH);
+      const value = byType[t] ? byType[t].count + ' mg/dL' : '—';
+      doc.text(value, x + valueCol/2, y + 6.5, {align:'center'});
+      x += valueCol;
+    });
+    y += 16;
+  });
+
+  doc.save('BloodSugar_Report_' + todayDMY().replace(/\//g,'-') + '.pdf');
+  showToast('PDF downloaded ✅', 'success');
+}
+function copyBSText() {
+  const entries = getBSEntries(currentPatientId);
+  const patient = getPatients().find(p => p.id === currentPatientId);
+  let text = 'BLOOD SUGAR REPORT\nName: '+(patient?patient.name:'—')+'\n\n';
+  const byDate = {};
+  entries.forEach(e => { if (!byDate[e.date]) byDate[e.date]=[]; byDate[e.date].push(e); });
+  Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a))).forEach(date => {
+    text += date + '\n';
+    byDate[date].forEach(e => { text += '  '+e.time+' | '+e.type+' | '+e.count+' mg/dL\n'; });
+    text += '\n';
+  });
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied!','success')).catch(()=>showToast('Copy failed','error'));
+}
+
+/* ── BLOOD PRESSURE LEVEL ────────────────────────────────────────── */
+function initBPForm() {
+  document.getElementById('bp-date').value = todayDMY();
+  document.getElementById('bp-time').value = nowTime();
+  document.getElementById('bp-count').value = '';
+  document.getElementById('bp-pulse').value = '';
+}
+
+function saveBPEntry() {
+  if (!currentPatientId) return showToast('Select a patient first','error');
+  const date  = document.getElementById('bp-date').value.trim();
+  const time  = document.getElementById('bp-time').value;
+  const count = document.getElementById('bp-count').value.trim();
+  const pulse = document.getElementById('bp-pulse').value.trim();
+  
+  if (!date || !time || !count) return showToast('Please fill required fields (Date, Time, BP)','error');
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(date)) return showToast('Date must be DD/MM/YYYY','error');
+  if (!/^\d{2,3}\/\d{2,3}$/.test(count)) return showToast('Format must be 120/80','error');
+  
+  const entries = getBPEntries(currentPatientId);
+  entries.push({ id:'bp_'+Date.now(), date, time, count, pulse });
+  saveBPEntries(currentPatientId, entries);
+  
+  showToast('Reading saved ✅','success');
+  initBPForm();
+  renderBPEntries();
+  updateTileCounts();
+}
+
+function renderBPEntries() {
+  if (!currentPatientId) return;
+  const entries = getBPEntries(currentPatientId).slice().sort((a,b) => {
+    const dc = parseDateSort(b.date).localeCompare(parseDateSort(a.date));
+    return dc !== 0 ? dc : b.time.localeCompare(a.time);
+  });
+  const list  = document.getElementById('bp-entries-list');
+  const empty = document.getElementById('bp-entries-empty');
+  if (!entries.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = entries.map(e => `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;box-shadow:var(--card-shadow);display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">❤️</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${e.date} &nbsp;·&nbsp; ${e.time}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:18px;font-weight:700;color:var(--text-primary);">${e.count}</div>
+        <div style="font-size:11px;color:var(--text-muted);">mmHg</div>
+        ${e.pulse ? `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-top:4px;">${e.pulse} <span style="font-size:10px;color:var(--text-muted);">BPM</span></div>` : ''}
+      </div>
+      <button class="btn btn-danger btn-sm btn-icon-sq" onclick="deleteBPEntry('${e.id}')" style="flex-shrink:0;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function deleteBPEntry(id) {
+  if (!confirm('Delete this reading?')) return;
+  saveBPEntries(currentPatientId, getBPEntries(currentPatientId).filter(e => e.id !== id));
+  renderBPEntries(); updateTileCounts(); showToast('Entry deleted','success');
+}
+
+function confirmBPReset() {
+  const confirmText = document.getElementById('bp-reset-pass').value;
+  if (confirmText !== 'DELETE') return showToast('Type DELETE to confirm','error');
+  saveBPEntries(currentPatientId, []);
+  closeModal('modal-bp-reset');
+  document.getElementById('bp-reset-pass').value = '';
+  renderBPEntries(); updateTileCounts();
+  showToast('All blood pressure records deleted','success');
+}
+
+/* ── BLOOD PRESSURE REPORT ───────────────────────────────────────── */
+function renderBPReport() {
+  const entries = getBPEntries(currentPatientId);
+  const content = document.getElementById('bp-report-content');
+  const empty   = document.getElementById('bp-report-empty');
+  const pdfBtn  = document.getElementById('bp-pdf-btn-wrap');
+  const patient = getPatients().find(p => p.id === currentPatientId);
+
+  if (!entries.length) { content.innerHTML=''; empty.style.display='block'; pdfBtn.style.display='none'; return; }
+  empty.style.display='none'; pdfBtn.style.display='block';
+
+  const byDate = {};
+  entries.forEach(e => { 
+    if (!byDate[e.date]) byDate[e.date]={}; 
+    byDate[e.date][e.time] = { count: e.count, pulse: e.pulse }; 
+  });
+  const sortedDates = Object.keys(byDate).sort((a,b) => parseDateSort(b).localeCompare(parseDateSort(a)));
+
+  let html = `
+    <div style="background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:20px 16px;box-shadow:var(--card-shadow);">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;text-align:center;letter-spacing:2px;text-decoration:underline;text-underline-offset:4px;margin-bottom:6px;color:#1A2340;">BLOOD PRESSURE REPORT</div>
+      <div style="font-size:12px;text-align:center;color:var(--text-secondary);margin-bottom:16px;">Name: <strong>${patient ? patient.name : '—'}</strong> &nbsp;·&nbsp; Generated: ${todayDMY()}</div>
+  `;
+
+  sortedDates.forEach(date => {
+    const timesForDate = Object.keys(byDate[date]).sort();
+    html += `
+      <div style="margin-bottom:18px;overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:12px;min-width:100%;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #1A2340;padding:7px 8px;background:#1A2340;color:#fff;text-align:center;white-space:nowrap;"></th>
+              ${timesForDate.map(t=>`<th style="border:1px solid #1A2340;padding:7px 8px;background:#1A2340;color:#fff;text-align:center;white-space:nowrap;">${t}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid #1A2340;padding:8px 8px;font-weight:700;text-align:center;background:#F8FAFF;white-space:nowrap;">${date}</td>
+              ${timesForDate.map(t => {
+                  let d = byDate[date][t];
+                  let pulseStr = d.pulse ? `<br><span style="font-size:10px;color:var(--text-secondary);">${d.pulse} BPM</span>` : '';
+                  return `<td style="border:1px solid #1A2340;padding:8px 8px;text-align:center;font-weight:600;">${d.count}${pulseStr}</td>`;
+              }).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+function downloadBPPDF() {
+  const { jsPDF } = window.jspdf;
+  const entries = getBPEntries(currentPatientId);
+  const patient = getPatients().find(p => p.id === currentPatientId);
+
+  if (!entries.length) { showToast('No data to export','error'); return; }
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(20);
+  doc.text('BLOOD PRESSURE REPORT', 105, 18, {align:'center'});
+  doc.setLineWidth(0.4); doc.line(65,21,145,21);
+  
+  doc.setFont('helvetica','normal'); doc.setFontSize(13);
+  doc.text('NAME : ' + (patient ? patient.name : '—'),15,35);
+ 
+  const byDate = {};
+  entries.forEach(e => {
+    if (!byDate[e.date]) byDate[e.date] = {};
+    byDate[e.date][e.time] = { count: e.count, pulse: e.pulse };
+  });
+  const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a)));
+
+  let y = 42;
+  sortedDates.forEach(date => {
+    if (y > 255) { doc.addPage(); y = 20; }
+    const times = Object.keys(byDate[date]).sort();
+    const startX = 15; const dateColW = 40; const timeColW = 40; const rowH = 12;
+
+    doc.setLineWidth(0.2); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(0,0,0);
+    doc.rect(startX,y,dateColW,rowH); doc.text(' ', startX + dateColW/2, y + 7, {align:'center'});
+    let x = startX + dateColW;
+
+    times.forEach(t => {
+      doc.rect(x,y,timeColW,rowH); doc.text(t, x + timeColW/2, y + 7, {align:'center'});
+      x += timeColW;
+    });
+
+    y += rowH; doc.setFont('helvetica','normal');
+    doc.rect(startX,y,dateColW,rowH); doc.text(date, startX + dateColW/2, y + 7, {align:'center'});
+    x = startX + dateColW;
+
+    times.forEach(t => {
+      doc.rect(x,y,timeColW,rowH);
+      let d = byDate[date][t];
+      if(d) {
+          if(d.pulse) {
+              doc.text([d.count + " mmHg", d.pulse + " BPM"], x + timeColW/2, y + 5, {align:'center'});
+          } else {
+              doc.text(d.count + " mmHg", x + timeColW/2, y + 7, {align:'center'});
+          }
+      } else {
+          doc.text('—', x + timeColW/2, y + 7, {align:'center'});
+      }
+      x += timeColW;
+    });
+    y += 16;
+  });
+
+  doc.save('BloodPressure_Report_' + todayDMY().replace(/\//g,'-') + '.pdf');
+  showToast('PDF downloaded ✅','success');
+}
+
+function copyBPText() {
+  const entries = getBPEntries(currentPatientId);
+  const patient = getPatients().find(p => p.id === currentPatientId);
+  let text = 'BLOOD PRESSURE REPORT\nName: '+(patient?patient.name:'—')+'\n\n';
+  const byDate = {};
+  entries.forEach(e => { if (!byDate[e.date]) byDate[e.date]=[]; byDate[e.date].push(e); });
+  Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a))).forEach(date => {
+    text += date + '\n';
+    byDate[date].forEach(e => { text += '  '+e.time+' | '+e.count+' mmHg' + (e.pulse ? ' | '+e.pulse+' BPM' : '') + '\n'; });
+    text += '\n';
+  });
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied!','success')).catch(()=>showToast('Copy failed','error'));
+}
+
+/* ── MODALS ──────────────────────────────────────────────────────── */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ── TOAST ───────────────────────────────────────────────────────── */
+function showToast(msg, type='info') {
+  const cont = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' }[type] + ' ' + msg;
+  cont.appendChild(t);
+  setTimeout(() => { t.style.animation='toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+/* ── MODAL CLOSE ON OVERLAY ──────────────────────────────────────── */
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) { if(e.target===this) this.classList.remove('open'); });
+});
+
+/* ── INIT ────────────────────────────────────────────────────────── */
+function init() {
+  initTheme();
+  // Check auto-deduction continuously every minute
+  setInterval(runAutoDeduction, 60000);
+}
+init();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
