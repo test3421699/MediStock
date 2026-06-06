@@ -2415,13 +2415,13 @@ function downloadBPPDF() {
     if (!byDate[e.date]) byDate[e.date] = {};
     byDate[e.date][e.time] = { count: e.count, pulse: e.pulse };
   });
-  const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(b).localeCompare(parseDateSort(a)));
+  const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(a).localeCompare(parseDateSort(b)));
 
   let y = 42;
   sortedDates.forEach(date => {
     if (y > 255) { doc.addPage(); y = 20; }
     const times = Object.keys(byDate[date]).sort();
-    const startX = 15; const dateColW = 40; const timeColW = 40; const rowH = 12;
+    const startX = 10; const dateColW = 30; const timeColW = 40; const rowH = 12;
 
     doc.setLineWidth(0.2); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(0,0,0);
     doc.rect(startX,y,dateColW,rowH); doc.text(' ', startX + dateColW/2, y + 7, {align:'center'});
