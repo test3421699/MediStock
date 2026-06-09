@@ -2395,68 +2395,237 @@ function renderBPReport() {
   content.innerHTML = html;
 }
 
-function downloadBPPDF() {
+function downloadBSPDF() {
   const { jsPDF } = window.jspdf;
-  const entries = getBPEntries(currentPatientId);
+
+  const entries = getBSEntries(currentPatientId);
   const patient = getPatients().find(p => p.id === currentPatientId);
 
-  if (!entries.length) { showToast('No data to export','error'); return; }
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  if (!entries.length) {
+    showToast('No data to export', 'error');
+    return;
+  }
 
-  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(20);
-  doc.text('BLOOD PRESSURE REPORT', 105, 18, {align:'center'});
-  doc.setLineWidth(0.4); doc.line(65,21,145,21);
-  
-  doc.setFont('helvetica','normal'); doc.setFontSize(13);
-  doc.text('NAME : ' + (patient ? patient.name : '—'),15,35);
- 
-  const byDate = {};
-  entries.forEach(e => {
-    if (!byDate[e.date]) byDate[e.date] = {};
-    byDate[e.date][e.time] = { count: e.count, pulse: e.pulse };
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
   });
-  const sortedDates = Object.keys(byDate).sort((a,b)=>parseDateSort(a).localeCompare(parseDateSort(b)));
+
+  const TYPES = [
+    'Before Breakfast',
+    'After Breakfast',
+    'Before Lunch',
+    'Before Dinner'
+  ];
+
+  const LABELS = [
+    'FBS',
+    'PPBS',
+    'PRE-LUNCH',
+    'PRE-DINNER'
+  ];
+
+  // ===== TITLE =====
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('BLOOD SUGAR REPORT', 105, 18, { align: 'center' });
+
+  doc.setLineWidth(0.4);
+  doc.line(60, 21, 150, 21);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(
+    'NAME : ' + (patient ? patient.name : '—'),
+    15,
+    32
+  );
+
+  // ===== GROUP BY DATE =====
+  const byDate = {};
+
+  entries.forEach(entry => {
+    if (!byDate[entry.date]) {
+      byDate[entry.date] = [];
+    }
+    byDate[entry.date].push(entry);
+  });
+
+  // Earliest date first
+  const sortedDates = Object.keys(byDate).sort((a, b) =>
+    parseDateSort(a).localeCompare(parseDateSort(b))
+  );
 
   let y = 42;
+
+  const startX = 10;
+  const rowHeight = 14;
+
+  const colWidths = [
+    30, // DATE
+    40, // FBS
+    40, // PPBS
+    40, // PRE-LUNCH
+    40  // PRE-DINNER
+  ];
+
+  // ===== TABLE HEADER =====
+  function drawHeader() {
+    let x = startX;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(255, 255, 255);
+
+    doc.rect(x, y, colWidths[0], 10);
+    doc.text(
+      'DATE',
+      x + colWidths[0] / 2,
+      y + 6,
+      { align: 'center' }
+    );
+
+    x += colWidths[0];
+
+    LABELS.forEach((label, i) => {
+      doc.rect(x, y, colWidths[i + 1], 10);
+
+      doc.text(
+        label,
+        x + colWidths[i + 1] / 2,
+        y + 6,
+        { align: 'center' }
+      );
+
+      x += colWidths[i + 1];
+    });
+
+    y += 10;
+  }
+
+  drawHeader();
+
+  // ===== DATA ROWS =====
   sortedDates.forEach(date => {
-    if (y > 255) { doc.addPage(); y = 20; }
-    const times = Object.keys(byDate[date]).sort();
-    const startX = 10; const dateColW = 30; const timeColW = 40; const rowH = 12;
 
-    doc.setLineWidth(0.2); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(0,0,0);
-    doc.rect(startX,y,dateColW,rowH); doc.text(' ', startX + dateColW/2, y + 7, {align:'center'});
-    let x = startX + dateColW;
+    if (y > 265) {
+      doc.addPage();
+      y = 20;
+      drawHeader();
+    }
 
-    times.forEach(t => {
-      doc.rect(x,y,timeColW,rowH); doc.text(t, x + timeColW/2, y + 7, {align:'center'});
-      x += timeColW;
+    const dayEntries = byDate[date];
+
+    const byType = {};
+
+    TYPES.forEach(type => {
+      byType[type] = null;
     });
 
-    y += rowH; doc.setFont('helvetica','normal');
-    doc.rect(startX,y,dateColW,rowH); doc.text(date, startX + dateColW/2, y + 7, {align:'center'});
-    x = startX + dateColW;
-
-    times.forEach(t => {
-      doc.rect(x,y,timeColW,rowH);
-      let d = byDate[date][t];
-      if(d) {
-          if(d.pulse) {
-              doc.text([d.count + " mmHg", d.pulse + " BPM"], x + timeColW/2, y + 5, {align:'center'});
-          } else {
-              doc.text(d.count + " mmHg", x + timeColW/2, y + 7, {align:'center'});
-          }
-      } else {
-          doc.text('—', x + timeColW/2, y + 7, {align:'center'});
+    dayEntries.forEach(entry => {
+      if (
+        !byType[entry.type] ||
+        entry.time > byType[entry.type].time
+      ) {
+        byType[entry.type] = entry;
       }
-      x += timeColW;
     });
-    y += 16;
+
+    let x = startX;
+
+    // DATE CELL
+    doc.rect(x, y, colWidths[0], rowHeight);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+
+    doc.text(
+      date,
+      x + colWidths[0] / 2,
+      y + 8,
+      { align: 'center' }
+    );
+
+    x += colWidths[0];
+
+    // VALUE CELLS
+    TYPES.forEach((type, i) => {
+
+      doc.rect(
+        x,
+        y,
+        colWidths[i + 1],
+        rowHeight
+      );
+
+      if (byType[type]) {
+
+        // Reading
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+
+        doc.text(
+          `${byType[type].count} mg/dL`,
+          x + colWidths[i + 1] / 2,
+          y + 5,
+          { align: 'center' }
+        );
+
+        // Time below reading
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+
+        doc.text(
+          byType[type].time,
+          x + colWidths[i + 1] / 2,
+          y + 11,
+          { align: 'center' }
+        );
+
+      } else {
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+
+        doc.text(
+          '—',
+          x + colWidths[i + 1] / 2,
+          y + 8,
+          { align: 'center' }
+        );
+      }
+
+      x += colWidths[i + 1];
+    });
+
+    y += rowHeight;
   });
 
-  doc.save('BloodPressure_Report_' + todayDMY().replace(/\//g,'-') + '.pdf');
-  showToast('PDF downloaded ✅','success');
-}
+  // ===== FOOTER =====
+  const pageCount = doc.internal.getNumberOfPages();
 
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+
+    doc.setFontSize(8);
+
+    doc.text(
+      `Page ${i} of ${pageCount}`,
+      195,
+      290
+    );
+  }
+
+  doc.save(
+    'BloodSugar_Report_' +
+    todayDMY().replace(/\//g, '-') +
+    '.pdf'
+  );
+
+  showToast('PDF downloaded ✅', 'success');
+  }
 function copyBPText() {
   const entries = getBPEntries(currentPatientId);
   const patient = getPatients().find(p => p.id === currentPatientId);
